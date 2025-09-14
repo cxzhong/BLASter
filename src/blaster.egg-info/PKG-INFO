@@ -1,3 +1,37 @@
+Metadata-Version: 2.4
+Name: blaster
+Version: 0.1.0
+Summary: BLASter: A proof of concept of an LLL-like lattice reduction algorithm with parallelization and segmentation
+Author: BLASter Contributors
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/cxzhong/BLASter
+Project-URL: Repository, https://github.com/cxzhong/BLASter
+Project-URL: Issues, https://github.com/cxzhong/BLASter/issues
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Cython
+Classifier: Programming Language :: C++
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Classifier: Topic :: Security :: Cryptography
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.20
+Requires-Dist: cysignals
+Requires-Dist: matplotlib
+Provides-Extra: dev
+Requires-Dist: build; extra == "dev"
+Requires-Dist: twine; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Dynamic: license-file
+
 # BLASter
 
 BLASter is a proof of concept of an LLL-like lattice reduction algorithm that uses:
@@ -26,7 +60,7 @@ We **do**:
 
 ## Requirements
 
-- python3 (3.10 or later)
+- python3 (3.8 or later)
 - Cython version 3.0 or later (installed automatically)
 - Python modules: `cysignals numpy setuptools matplotlib` (installed automatically)
 - **Eigen3 headers** (downloaded automatically during installation)

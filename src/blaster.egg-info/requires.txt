@@ -1,0 +1,8 @@
+numpy>=1.20
+cysignals
+matplotlib
+
+[dev]
+build
+twine
+pytest
