@@ -99,13 +99,13 @@ def main():
 
     # Quality before reduction
     quality_before = blaster.estimate_reduction_quality(lattice_basis)
-    print(f"\nBefore reduction:")
+    print("\nBefore reduction:")
     print(f"  RHF: {quality_before['rhf']:.6f}")
     print(f"  Condition number: {quality_before['condition_number']:.2f}")
 
     # Reduce the lattice
     result = blaster.lll_reduce(lattice_basis, delta=0.999, cores=2)
-    print(f"\nAfter LLL reduction:")
+    print("\nAfter LLL reduction:")
     print(f"  RHF: {result.rhf:.6f}")
     print(f"  Iterations: {result.time_profile.num_iterations}")
 

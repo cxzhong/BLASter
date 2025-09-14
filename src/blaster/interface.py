@@ -5,8 +5,6 @@ This module provides a user-friendly interface that works directly with numpy ma
 handling the conversion between row/column formats and providing sensible defaults.
 """
 
-from typing import Any, Dict, Optional, Tuple, Union
-
 import numpy as np
 
 from .blaster import TimeProfile, reduce as _blaster_reduce
@@ -271,7 +269,9 @@ def estimate_reduction_quality(
 # Convenient aliases for common use cases
 reduce_lattice = lll_reduce
 lll = lll_reduce_basis
-bkz = lambda basis, beta, **kwargs: bkz_reduce(basis, beta, **kwargs).reduced_basis
+
+def bkz(basis, beta, **kwargs):
+    return bkz_reduce(basis, beta, **kwargs).reduced_basis
 
 
 def demo_usage():
@@ -288,7 +288,7 @@ def demo_usage():
 
     # Analyze original basis
     original_quality = estimate_reduction_quality(basis)
-    print(f"\nOriginal basis quality:")
+    print("\nOriginal basis quality:")
     print(f"  RHF: {original_quality['rhf']:.6f}")
     print(f"  Slope: {original_quality['slope']:.6f}")
     print(f"  Condition number: {original_quality['condition_number']:.2f}")
@@ -300,13 +300,13 @@ def demo_usage():
     print(f"\nReduced basis:\n{result.reduced_basis}")
     print(f"\nTransformation matrix:\n{result.transformation}")
 
-    print(f"\nReduction results:")
+    print("\nReduction results:")
     print(f"  RHF: {result.rhf:.6f}")
     print(f"  Slope: {result.slope:.6f}")
     print(f"  Iterations: {result.time_profile.num_iterations}")
     print(f"  Transformation verified: {result.verify_transformation()}")
 
-    print(f"\nTime profile:")
+    print("\nTime profile:")
     print(result.time_profile)
 
 

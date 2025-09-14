@@ -13,7 +13,7 @@ speed ups that are possible in lattice reduction software.
 
 __version__ = "0.1.0"
 
-from .lattice_io import *
+from .lattice_io import *  # noqa: F401,F403
 
 # Import main classes and functions
 from .size_reduction import (
@@ -36,7 +36,7 @@ try:
     )
 
     # Now import classes that depend on the extension
-    from .blaster import TimeProfile, reduce
+    from .blaster import TimeProfile, reduce  # noqa: F401
 
     # Import high-level interface
     from .interface import (
@@ -48,7 +48,7 @@ try:
         lll_reduce,
         lll_reduce_basis,
         reduce_lattice,
-    )
+    )  # noqa: F401
 
     __all__ = [
         # High-level interface (recommended)
