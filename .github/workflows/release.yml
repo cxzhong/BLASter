@@ -118,11 +118,37 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Test wheel installation
+    - name: Debug available artifacts
       shell: bash
       run: |
-        # Test platform-specific wheel
-        pip install ${{ matrix.wheel-pattern }}
+        echo "=== DEBUG: All downloaded artifacts ==="
+        find . -type f -name "*.whl" -o -name "*.tar.gz" | sort
+        echo ""
+        echo "=== Directory structure ==="
+        ls -la
+        echo ""
+        echo "=== Wheels directory for ${{ matrix.test-os }} ==="
+        ls -la wheels-${{ matrix.test-os }}/ 2>/dev/null || echo "wheels-${{ matrix.test-os }}/ directory not found"
+    
+    - name: Test wheel installation  
+      shell: bash
+      run: |
+        echo "Available wheels in wheels-${{ matrix.test-os }}/:"
+        ls -la wheels-${{ matrix.test-os }}/*.whl
+        
+        echo "Python version info:"
+        python --version
+        pip --version
+        
+        # Create a temporary directory and copy wheels there
+        mkdir temp_wheels
+        cp wheels-${{ matrix.test-os }}/*.whl temp_wheels/
+        
+        echo "Testing wheel installation by letting pip choose the compatible wheel..."
+        # Use pip install with --find-links to let pip select the right wheel
+        pip install --no-index --find-links temp_wheels/ blaster
+        
+        echo "Testing the installed package..."
         python -c "
         import blaster
         import numpy as np
@@ -130,7 +156,9 @@ jobs:
         result = blaster.lll_reduce(basis, verbose=False)
         print(f'[OK] Wheel installation test passed on ${{ matrix.test-os }}: RHF = {result.rhf:.6f}')
         "
+        
         pip uninstall -y blaster
+        rm -rf temp_wheels
     
     - name: Test source distribution installation
       # Only test source distribution on one platform to avoid redundancy
