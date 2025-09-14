@@ -17,7 +17,7 @@ def read_qary_lattice(input_file=None):
         while data[-1] != "]" and data[-1][-2] != "]":
             data.append(input())
     else:
-        with open(input_file, "r", encoding="utf-8") as f:
+        with open(input_file, encoding="utf-8") as f:
             data.append(f.readline()[:-1])
             while data[-1] != "]" and data[-1][-2] != "]":
                 data.append(f.readline()[:-1])

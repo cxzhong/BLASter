@@ -5,11 +5,12 @@ Seysen-reducing a basis.
 In comments, the old recursive functions are kept for clarity.
 """
 
-from functools import lru_cache
+from functools import cache
+
+import numpy as np
 
 # Local imports
 from blaster_core import FT_matmul, ZZ_left_matmul_strided
-import numpy as np
 
 # Reduction properties:
 
@@ -52,7 +53,7 @@ def is_lll_reduced(R, delta=0.99):
     return is_weakly_lll_reduced(R, delta) and is_size_reduced(R)
 
 
-@lru_cache(maxsize=None)
+@cache
 def __reduction_ranges(n):
     """
     Return list of ranges that needs to be reduced.
@@ -90,7 +91,7 @@ def __reduction_ranges(n):
     bit_shift, parts, result, base_cases = 1, 1, [], []
     while parts < n:
         left_bound, left_idx = 0, 0
-        for i in range(1, parts + 1):
+        for _i in range(1, parts + 1):
             right_bound = left_bound + 2 * n
 
             mid_idx = (left_bound + n) >> bit_shift
@@ -110,7 +111,7 @@ def __reduction_ranges(n):
     return base_cases, list(reversed(result))
 
 
-@lru_cache(maxsize=None)
+@cache
 def __babai_ranges(n):
     # Assume all indices are base cases initially
     range_around = [False] * n

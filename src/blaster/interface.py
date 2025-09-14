@@ -7,7 +7,8 @@ handling the conversion between row/column formats and providing sensible defaul
 
 import numpy as np
 
-from .blaster import TimeProfile, reduce as _blaster_reduce
+from .blaster import TimeProfile
+from .blaster import reduce as _blaster_reduce
 from .stats import potential, rhf, slope
 
 
@@ -130,8 +131,8 @@ def lll_reduce(
     # Convert to integer type (required by BLASter core)
     try:
         B = B.astype(int)
-    except (ValueError, OverflowError):
-        raise ValueError("Basis must contain integer values")
+    except (ValueError, OverflowError) as e:
+        raise ValueError("Basis must contain integer values") from e
 
     # Check for reasonable condition number to avoid numerical issues
     try:
@@ -139,8 +140,8 @@ def lll_reduce(
         det = np.linalg.det(B_float @ B_float.T)
         if abs(det) < 1e-12:
             raise ValueError("Basis appears to be singular or nearly singular")
-    except np.linalg.LinAlgError:
-        raise ValueError("Basis is singular or has numerical issues")
+    except np.linalg.LinAlgError as e:
+        raise ValueError("Basis is singular or has numerical issues") from e
 
     # Convert to column vector format (transpose)
     B = B.T.copy()

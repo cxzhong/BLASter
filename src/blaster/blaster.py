@@ -7,6 +7,9 @@ from functools import partial
 from sys import stderr
 from time import perf_counter_ns
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 # Local imports
 from blaster_core import (
     ZZ_right_matmul,
@@ -17,8 +20,6 @@ from blaster_core import (
     set_num_cores,
 )
 from matplotlib.animation import ArtistAnimation, PillowWriter
-import matplotlib.pyplot as plt
-import numpy as np
 
 from .size_reduction import (
     is_lll_reduced,
@@ -47,12 +48,12 @@ class TimeProfile:
 
     def tick(self, *times):
         self.num_iterations += 1
-        self.times = [x + y for x, y in zip(self.times, times)]
+        self.times = [x + y for x, y in zip(self.times, times, strict=False)]
 
     def __str__(self):
         return f"Iterations: {self.num_iterations}\n" + "\n".join(
-            f"t_{{{s:11}}}={t/10**9:10.3f}s"
-            for s, t in zip(self._strs, self.times)
+            f"t_{{{s:11}}}={t / 10**9:10.3f}s"
+            for s, t in zip(self._strs, self.times, strict=False)
             if t
         )
 

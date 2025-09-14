@@ -21,7 +21,7 @@ This directory contains comprehensive CI/CD workflows for the BLASter lattice re
 - `test-build`: Cross-platform matrix testing
 - `test-source-distribution`: Source distribution testing  
 - `test-eigen3-scenarios`: Eigen3 dependency management validation
-
+- `lint-check`: Fast code linting and formatting with ruff
 - `performance-test`: Performance benchmarks (main branch only)
 - `documentation`: Documentation completeness validation
 

@@ -110,9 +110,9 @@ def __main__():
     # Perform sanity checks
     assert 0.25 < args.delta and args.delta < 1.0, "Invalid value for delta!"
     assert args.lll_size >= 2, "LLL block size must be at least 2!"
-    assert (
-        not args.depth or not args.beta
-    ), "Cannot run combination of deep-LLL and BKZ!"
+    assert not args.depth or not args.beta, (
+        "Cannot run combination of deep-LLL and BKZ!"
+    )
 
     # Read the basis from input (file)
     B = read_qary_lattice(args.input)
@@ -170,7 +170,7 @@ def __main__():
         print(
             "\nProfile = [" + " ".join([f"{x:.2f}" for x in prof]) + "]\n"
             f"RHF = {rhf(prof):.5f}^n, slope = {slope(prof):.6f}, "
-            f"∥b_1∥ = {2.0**prof[0]:.1f}",
+            f"∥b_1∥ = {2.0 ** prof[0]:.1f}",
             file=stderr,
         )
 

@@ -84,7 +84,8 @@ except ImportError as e:
     warnings.warn(
         f"Could not import blaster_core extension: {e}. "
         "The package may not be properly compiled. "
-        "Try running 'pip install -e .' or 'make' to build the extension."
+        "Try running 'pip install -e .' or 'make' to build the extension.",
+        stacklevel=2
     )
 
     # Still export non-extension dependent functions
