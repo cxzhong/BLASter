@@ -105,7 +105,8 @@ jobs:
         print(f'[OK] Interface test 3: RHF = {result3.rhf:.6f}')
         
         # Test quality metrics
-        print(f'[OK] Quality metrics available: {hasattr(result1, \"orthogonality_defect\")}')
+        has_orthogonality = hasattr(result1, 'orthogonality_defect')
+        print(f'[OK] Quality metrics available: {has_orthogonality}')
         
         print('SUCCESS: All interface examples work!')
         "
