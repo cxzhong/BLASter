@@ -131,7 +131,7 @@ echo "Installing BLASter from built wheel..."
 if ls dist/*.whl 1> /dev/null 2>&1; then
     # Ensure numpy dependency is available when installing from local wheels without index
     python -m pip install --upgrade pip
-    pip install "numpy>=1.20"
+    pip install "numpy>=1.20" cysignals matplotlib
     # Let pip choose a compatible wheel from dist/
     pip install --no-index --find-links dist/ blaster --force-reinstall
     print_status $? "Installation from wheel"
