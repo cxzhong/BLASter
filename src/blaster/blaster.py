@@ -7,10 +7,6 @@ from functools import partial
 from sys import stderr
 from time import perf_counter_ns
 
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.animation import ArtistAnimation, PillowWriter
-
 # Local imports
 from blaster_core import (
     ZZ_right_matmul,
@@ -20,6 +16,10 @@ from blaster_core import (
     set_debug_flag,
     set_num_cores,
 )
+from matplotlib.animation import ArtistAnimation, PillowWriter
+import matplotlib.pyplot as plt
+import numpy as np
+
 from .size_reduction import (
     is_lll_reduced,
     is_weakly_lll_reduced,

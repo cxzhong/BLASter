@@ -8,12 +8,12 @@ from math import ceil, log2
 from multiprocessing import cpu_count
 from sys import stderr
 
+from lattice_io import read_qary_lattice, write_lattice
 import numpy as np
+from stats import gaussian_heuristic, get_profile, rhf, slope
 
 # Local imports
 from blaster import reduce
-from lattice_io import read_qary_lattice, write_lattice
-from stats import gaussian_heuristic, get_profile, rhf, slope
 
 
 def __main__():

@@ -9,8 +9,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from .blaster import TimeProfile
-from .blaster import reduce as _blaster_reduce
+from .blaster import TimeProfile, reduce as _blaster_reduce
 from .stats import potential, rhf, slope
 
 
