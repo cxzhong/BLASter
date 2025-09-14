@@ -129,7 +129,8 @@ echo "Installing BLASter from built wheel..."
 
 # Install from wheel
 if ls dist/*.whl 1> /dev/null 2>&1; then
-    pip install dist/*.whl --force-reinstall
+    # Let pip choose a compatible wheel from dist/
+    pip install --no-index --find-links dist/ blaster --force-reinstall
     print_status $? "Installation from wheel"
 else
     echo "No wheel found, installing in development mode..."
