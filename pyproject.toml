@@ -1,0 +1,85 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "wheel",
+    "Cython>=3.0",
+    "numpy>=1.20",
+    "cysignals",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blaster"
+version = "0.1.0"
+description = "BLASter: A proof of concept of an LLL-like lattice reduction algorithm with parallelization and segmentation"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "BLASter Contributors"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Cython",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Security :: Cryptography",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.20",
+    "cysignals",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "twine",
+    "pytest",
+]
+
+[project.scripts]
+blaster = "blaster.app:main"
+
+[project.urls]
+Homepage = "https://github.com/cxzhong/BLASter"
+Repository = "https://github.com/cxzhong/BLASter"
+Issues = "https://github.com/cxzhong/BLASter/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.pyx", "*.pxd", "*.cpp", "*.hpp"]
+
+[tool.cibuildwheel]
+# Configuration for building wheels across different platforms
+build = "cp38-* cp39-* cp310-* cp311-* cp312-*"
+skip = "*-win32 *-manylinux_i686"
+
+[tool.cibuildwheel.linux]
+before-all = [
+    "yum install -y eigen3-devel || apt-get update && apt-get install -y libeigen3-dev || apk add --no-cache eigen-dev"
+]
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "brew install eigen"
+]
+
+[tool.cibuildwheel.windows]
+before-all = [
+    "vcpkg install eigen3:x64-windows"
+]

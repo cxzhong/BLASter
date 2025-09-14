@@ -1,0 +1,31 @@
+# MANIFEST.in - Include additional files in source distribution
+
+# Include the Cython source files
+include core/*.pyx
+include core/*.pxd
+include core/*.cpp
+include core/*.hpp
+
+# Include documentation and configuration files
+include README.md
+include LICENSE
+include Makefile
+include pyproject.toml
+
+# Include Eigen library if it exists locally
+recursive-include eigen3 *.h *.hpp
+recursive-include eigen-* *.h *.hpp
+
+# Include any benchmarking files
+recursive-include benchmark *.py
+
+# Exclude build artifacts and temporary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *~
+global-exclude .git*
+global-exclude __pycache__
+prune build
+prune dist
+prune test_venv
+prune venv
