@@ -41,13 +41,13 @@ jobs:
         CIBW_ARCHS_MACOS: x86_64 arm64
         CIBW_ARCHS_WINDOWS: AMD64
         # Install build dependencies only (Eigen3 is auto-downloaded by setup.py)
-        CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy cysignals
+        CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy mesonpy cysignals
         # Linux: Only install Python dependencies - no system packages needed
         CIBW_BEFORE_BUILD_LINUX: >
-          pip install setuptools wheel Cython numpy cysignals &&
+          pip install setuptools wheel Cython numpy mesonpy cysignals &&
           echo "Using automatic Eigen3 download - no system packages"
-        # Install LLVM and OpenMP on macOS
-        CIBW_BEFORE_BUILD_MACOS: brew install llvm libomp && pip install setuptools wheel Cython numpy cysignals
+        # Install LLVM and OpenMP on macOS, and mesonpy for building cysignals from source
+        CIBW_BEFORE_BUILD_MACOS: brew install llvm libomp && pip install setuptools wheel Cython numpy mesonpy cysignals
         # Skip built-in wheel testing - we do comprehensive testing in test-release job
         CIBW_TEST_SKIP: "*"
         # Environment variables for builds
