@@ -21,7 +21,7 @@ This directory contains comprehensive CI/CD workflows for the BLASter lattice re
 - `test-build`: Cross-platform matrix testing
 - `test-source-distribution`: Source distribution testing  
 - `test-eigen3-scenarios`: Eigen3 dependency management validation
-- `code-quality`: Basic formatting and linting checks
+
 - `performance-test`: Performance benchmarks (main branch only)
 - `documentation`: Documentation completeness validation
 
@@ -61,7 +61,6 @@ This directory contains comprehensive CI/CD workflows for the BLASter lattice re
 
 **Jobs:**
 - `security-scan`: Multi-tool security vulnerability scanning
-- `code-quality`: Advanced code quality analysis (pylint, mypy, complexity)
 - `dependency-check`: License and vulnerability auditing of dependencies
 - `codeql-analysis`: GitHub CodeQL security analysis  
 - `generate-quality-report`: Summary report generation
