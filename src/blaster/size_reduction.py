@@ -11,7 +11,6 @@ from functools import lru_cache
 from blaster_core import FT_matmul, ZZ_left_matmul_strided
 import numpy as np
 
-
 # Reduction properties:
 
 
