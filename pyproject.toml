@@ -13,8 +13,7 @@ name = "blaster"
 version = "0.1.0"
 description = "BLASter: A proof of concept of an LLL-like lattice reduction algorithm with parallelization and segmentation"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = {text = "MIT"}
 authors = [
     {name = "BLASter Contributors"}
 ]
