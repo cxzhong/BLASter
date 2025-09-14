@@ -169,7 +169,9 @@ jobs:
         ls -la isolated_test_wheels/
         
         echo ""
-        echo "Installing blaster using platform-specific wheels..."
+  echo "Installing blaster using platform-specific wheels..."
+  python -m pip install --upgrade pip
+  pip install "numpy>=1.20"
         
         # Get the exact wheel file and install it directly
         WHEEL_FILE=$(ls isolated_test_wheels/*.whl | head -1)
@@ -180,7 +182,7 @@ jobs:
           exit 1
         fi
         
-        pip install "$WHEEL_FILE"
+  pip install "$WHEEL_FILE"
         
         echo ""
         echo "Testing the installed package..."

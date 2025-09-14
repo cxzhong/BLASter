@@ -88,6 +88,8 @@ jobs:
       shell: bash
       run: |
         # Install the built wheel
+        python -m pip install --upgrade pip
+        pip install "numpy>=1.20"
         pip install --no-index --find-links dist/ blaster
     
     - name: Test basic functionality
@@ -225,6 +227,8 @@ jobs:
       run: |
         echo "Building with scenario: ${{ matrix.scenario }}"
         python -m build --wheel
+        python -m pip install --upgrade pip
+        pip install "numpy>=1.20"
         pip install --no-index --find-links dist/ blaster
         
         # Verify it works
@@ -287,6 +291,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip build
         python -m build --wheel
+        pip install "numpy>=1.20"
         pip install --no-index --find-links dist/ blaster
     
     - name: Run performance benchmarks
