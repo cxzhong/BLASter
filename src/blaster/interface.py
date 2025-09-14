@@ -229,7 +229,7 @@ def bkz_reduce(basis: np.ndarray, beta: int, tours: int = 1, **kwargs) -> LLLRes
 
 def estimate_reduction_quality(
     basis: np.ndarray, row_vectors: bool = True
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Estimate the quality of a lattice basis without performing reduction.
 
@@ -270,7 +270,7 @@ def estimate_reduction_quality(
 reduce_lattice = lll_reduce
 lll = lll_reduce_basis
 
- 
+
 def bkz(basis, beta, **kwargs):
     return bkz_reduce(basis, beta, **kwargs).reduced_basis
 
@@ -288,7 +288,7 @@ def demo_usage():
     print(f"Original basis:\n{basis}")
 
     # Analyze original basis
- 
+    original_quality = estimate_reduction_quality(basis)
     print("\nOriginal basis quality:")
     print(f"  RHF: {original_quality['rhf']:.6f}")
     print(f"  Slope: {original_quality['slope']:.6f}")
