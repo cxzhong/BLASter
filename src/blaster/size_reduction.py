@@ -4,7 +4,7 @@ Seysen-reducing a basis.
 
 In comments, the old recursive functions are kept for clarity.
 """
-from functools import cache
+from functools import lru_cache
 import numpy as np
 
 # Local imports
@@ -52,7 +52,7 @@ def is_lll_reduced(R, delta=.99):
     return is_weakly_lll_reduced(R, delta) and is_size_reduced(R)
 
 
-@cache
+@lru_cache(maxsize=None)
 def __reduction_ranges(n):
     """
     Return list of ranges that needs to be reduced.
@@ -110,7 +110,7 @@ def __reduction_ranges(n):
     return base_cases, list(reversed(result))
 
 
-@cache
+@lru_cache(maxsize=None)
 def __babai_ranges(n):
     # Assume all indices are base cases initially
     range_around = [False] * n
