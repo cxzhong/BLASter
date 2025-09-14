@@ -288,7 +288,7 @@ def demo_usage():
     print(f"Original basis:\n{basis}")
 
     # Analyze original basis
-    original_quality = estimate_reduction_quality(basis)
+ 
     print("\nOriginal basis quality:")
     print(f"  RHF: {original_quality['rhf']:.6f}")
     print(f"  Slope: {original_quality['slope']:.6f}")
