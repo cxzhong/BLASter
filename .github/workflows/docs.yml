@@ -48,13 +48,13 @@ jobs:
     
     - name: Validate demo.py
       run: |
-        echo "🧪 Testing examples/demo.py"
+        echo "[TEST] Testing examples/demo.py"
         python examples/demo.py
-        echo "✅ Demo script executed successfully"
+        echo "[OK] Demo script executed successfully"
     
     - name: Validate README examples
       run: |
-        echo "📚 Testing README code examples"
+        echo "[DOCS] Testing README code examples"
         python -c "
         # Test the basic example from README
         import blaster
@@ -63,17 +63,17 @@ jobs:
         # Example 1: Basic LLL reduction
         basis = np.array([[10, 2, 3], [1, 12, 4], [2, 1, 15]])
         result = blaster.lll_reduce(basis)
-        print(f'✅ Basic LLL example: RHF = {result.rhf:.6f}')
+        print(f'[OK] Basic LLL example: RHF = {result.rhf:.6f}')
         
         # Example 2: BKZ reduction
         bkz_result = blaster.bkz_reduce(basis, beta=5)
-        print(f'✅ BKZ example: RHF = {bkz_result.rhf:.6f}')
+        print(f'[OK] BKZ example: RHF = {bkz_result.rhf:.6f}')
         
         # Example 3: Convenience function
         reduced = blaster.lll(basis)
-        print(f'✅ Convenience function: shape = {reduced.shape}')
+        print(f'[OK] Convenience function: shape = {reduced.shape}')
         
-        print('🎉 All README examples work!')
+        print('SUCCESS: All README examples work!')
         "
     
     - name: Test interface examples
@@ -91,14 +91,14 @@ jobs:
         result2 = blaster.lll_reduce(basis, pruning='random', verbose=False)
         result3 = blaster.bkz_reduce(basis, beta=10, verbose=False)
         
-        print(f'✅ Interface test 1: RHF = {result1.rhf:.6f}')
-        print(f'✅ Interface test 2: RHF = {result2.rhf:.6f}') 
-        print(f'✅ Interface test 3: RHF = {result3.rhf:.6f}')
+        print(f'[OK] Interface test 1: RHF = {result1.rhf:.6f}')
+        print(f'[OK] Interface test 2: RHF = {result2.rhf:.6f}') 
+        print(f'[OK] Interface test 3: RHF = {result3.rhf:.6f}')
         
         # Test quality metrics
-        print(f'✅ Quality metrics available: {hasattr(result1, \"orthogonality_defect\")}')
+        print(f'[OK] Quality metrics available: {hasattr(result1, \"orthogonality_defect\")}')
         
-        print('🎉 All interface examples work!')
+        print('SUCCESS: All interface examples work!')
         "
 
   check-documentation:
@@ -111,7 +111,7 @@ jobs:
     
     - name: Check documentation structure
       run: |
-        echo "📋 Checking documentation completeness..."
+        echo "[CHECK] Checking documentation completeness..."
         
         # Check essential files exist
         echo "Checking essential documentation files:"
@@ -125,18 +125,18 @@ jobs:
         
         for file in "${files_to_check[@]}"; do
           if [ -f "$file" ]; then
-            echo "✅ $file exists"
+            echo "[OK] $file exists"
           else
-            echo "❌ Missing: $file"
+            echo "[ERROR] Missing: $file"
             exit 1
           fi
         done
         
-        echo "✅ All essential files present"
+        echo "[OK] All essential files present"
     
     - name: Check README content
       run: |
-        echo "📖 Checking README.md content..."
+        echo "[README] Checking README.md content..."
         
         # Check that README contains essential sections
         sections=(
@@ -150,24 +150,24 @@ jobs:
         
         for section in "${sections[@]}"; do
           if grep -qi "$section" README.md; then
-            echo "✅ README mentions: $section"
+            echo "[OK] README mentions: $section"
           else
-            echo "⚠️ README might be missing content about: $section"
+            echo "[WARNING] README might be missing content about: $section"
           fi
         done
         
         # Check for modern installation instructions
         if grep -q "pip install" README.md; then
-          echo "✅ README includes pip installation"
+          echo "[OK] README includes pip installation"
         else
-          echo "❌ README missing pip installation instructions"
+          echo "[ERROR] README missing pip installation instructions"
           exit 1
         fi
         
         if grep -q "automatic" README.md || grep -q "Eigen" README.md; then
-          echo "✅ README mentions automatic dependency management"
+          echo "[OK] README mentions automatic dependency management"
         else
-          echo "⚠️ README should mention automatic Eigen3 management"
+          echo "[WARNING] README should mention automatic Eigen3 management"
         fi
     
     - name: Check interface documentation
@@ -185,15 +185,15 @@ jobs:
         
         for section in "${interface_sections[@]}"; do
           if grep -qi "$section" INTERFACE_README.md; then
-            echo "✅ Interface docs mention: $section"
+            echo "[OK] Interface docs mention: $section"
           else
-            echo "⚠️ Interface docs might be missing: $section"
+            echo "[WARNING] Interface docs might be missing: $section"
           fi
         done
     
     - name: Validate code blocks in documentation
       run: |
-        echo "💻 Checking code block syntax in documentation..."
+        echo "[CODE] Checking code block syntax in documentation..."
         
         # Extract and validate Python code blocks from README
         python3 << 'EOF'
@@ -214,9 +214,9 @@ jobs:
                 try:
                     # Try to parse the code block
                     ast.parse(block)
-                    print(f"✅ Code block {i+1} syntax is valid")
+                    print(f"[OK] Code block {i+1} syntax is valid")
                 except SyntaxError as e:
-                    print(f"❌ Code block {i+1} has syntax error: {e}")
+                    print(f"[ERROR] Code block {i+1} has syntax error: {e}")
                     print(f"Block content:\n{block}")
                     return False
             
@@ -228,9 +228,9 @@ jobs:
         success &= check_python_code_blocks("INTERFACE_README.md") 
         
         if success:
-            print("✅ All Python code blocks are syntactically valid")
+            print("[OK] All Python code blocks are syntactically valid")
         else:
-            print("❌ Some code blocks have syntax errors")
+            print("[ERROR] Some code blocks have syntax errors")
             exit(1)
         EOF
 
@@ -255,17 +255,17 @@ jobs:
     
     - name: Run comprehensive examples
       run: |
-        echo "🏁 Running comprehensive examples and benchmarks..."
+        echo "[RUNNING] Running comprehensive examples and benchmarks..."
         python -c "
         import blaster
         import numpy as np
         import time
         
-        print('🔬 BLASter Comprehensive Test Suite')
+        print('[ANALYSIS] BLASter Comprehensive Test Suite')
         print('=' * 50)
         
         # Test 1: Small dimension lattices
-        print('\\n📊 Test 1: Small Dimension Lattices')
+        print('\\n[INFO] Test 1: Small Dimension Lattices')
         dimensions = [4, 6, 8, 10]
         for dim in dimensions:
             basis = np.random.randint(-10, 11, size=(dim, dim))
@@ -287,13 +287,13 @@ jobs:
         print(f'BKZ-10: RHF={bkz_result.rhf:.6f}')
         
         # Test 3: Quality verification
-        print('\\n✅ Test 3: Quality Verification')
+        print('\\n[OK] Test 3: Quality Verification')
         test_result = blaster.lll_reduce(np.array([[1, 2], [2, 5]]), verbose=False)
         verification = test_result.verify_transformation()
         print(f'Transformation verification: {verification}')
         
         # Test 4: Edge cases
-        print('\\n🎯 Test 4: Edge Cases')
+        print('\\n[STATUS] Test 4: Edge Cases')
         
         # Identity matrix
         identity = np.eye(5, dtype=int)
@@ -305,12 +305,12 @@ jobs:
         reduced_result = blaster.lll_reduce(reduced_basis, verbose=False)
         print(f'Already reduced RHF: {reduced_result.rhf:.6f}')
         
-        print('\\n🎉 All comprehensive tests completed successfully!')
+        print('\\nSUCCESS: All comprehensive tests completed successfully!')
         "
     
     - name: Test console script functionality  
       run: |
-        echo "⚡ Testing console script functionality..."
+        echo "[SCRIPT] Testing console script functionality..."
         
         # Test help command
         blaster --help
@@ -322,11 +322,11 @@ jobs:
         "
         
         # Test console script with file (if supported)
-        echo "✅ Console script help works"
+        echo "[OK] Console script help works"
     
     - name: Generate example performance report
       run: |
-        echo "📈 Generating performance characteristics report..."
+        echo "[BENCHMARK] Generating performance characteristics report..."
         python -c "
         import blaster
         import numpy as np
@@ -378,12 +378,12 @@ jobs:
     
     - name: Check links in README.md
       run: |
-        echo "🔗 Checking links in README.md..."
+        echo "[LINKS] Checking links in README.md..."
         markdown-link-check README.md || echo "Some links might be broken (non-blocking)"
     
     - name: Check links in INTERFACE_README.md
       run: |
-        echo "🔗 Checking links in INTERFACE_README.md..."
+        echo "[LINKS] Checking links in INTERFACE_README.md..."
         markdown-link-check INTERFACE_README.md || echo "Some links might be broken (non-blocking)"
 
   documentation-summary:
@@ -395,27 +395,27 @@ jobs:
     steps:
     - name: Generate documentation status report
       run: |
-        echo "# 📚 Documentation Status Report" > doc-summary.md
+        echo "# [DOCS] Documentation Status Report" > doc-summary.md
         echo "Generated: $(date)" >> doc-summary.md
         echo "" >> doc-summary.md
         
-        echo "## 🧪 Example Validation" >> doc-summary.md
+        echo "## [TEST] Example Validation" >> doc-summary.md
         echo "Status: ${{ needs.validate-examples.result }}" >> doc-summary.md
         echo "" >> doc-summary.md
         
-        echo "## 📋 Documentation Completeness" >> doc-summary.md
+        echo "## [CHECK] Documentation Completeness" >> doc-summary.md
         echo "Status: ${{ needs.check-documentation.result }}" >> doc-summary.md
         echo "" >> doc-summary.md
         
-        echo "## 🏁 Performance Benchmarks" >> doc-summary.md  
+        echo "## [RUNNING] Performance Benchmarks" >> doc-summary.md  
         echo "Status: ${{ needs.benchmark-examples.result }}" >> doc-summary.md
         echo "" >> doc-summary.md
         
-        echo "## ✅ Overall Assessment" >> doc-summary.md
+        echo "## [OK] Overall Assessment" >> doc-summary.md
         if [[ "${{ needs.validate-examples.result }}" == "success" && "${{ needs.check-documentation.result }}" == "success" ]]; then
-          echo "All documentation checks passed! 🎉" >> doc-summary.md
+          echo "All documentation checks passed! SUCCESS:" >> doc-summary.md
         else
-          echo "Some documentation checks need attention. ⚠️" >> doc-summary.md
+          echo "Some documentation checks need attention. [WARNING]" >> doc-summary.md
         fi
         
         cat doc-summary.md

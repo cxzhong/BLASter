@@ -83,42 +83,42 @@ jobs:
     
     - name: Check code formatting with Black
       run: |
-        echo "🎨 Checking code formatting..."
-        black --check --diff src/ examples/ || (echo "❌ Code formatting issues found" && exit 1)
-        echo "✅ Code formatting is correct"
+        echo "[FORMAT] Checking code formatting..."
+        black --check --diff src/ examples/ || (echo "[ERROR] Code formatting issues found" && exit 1)
+        echo "[OK] Code formatting is correct"
     
     - name: Check import sorting with isort
       run: |
-        echo "📚 Checking import sorting..."
-        isort --check-only --diff src/ examples/ || (echo "❌ Import sorting issues found" && exit 1)
-        echo "✅ Import sorting is correct"
+        echo "[DOCS] Checking import sorting..."
+        isort --check-only --diff src/ examples/ || (echo "[ERROR] Import sorting issues found" && exit 1)
+        echo "[OK] Import sorting is correct"
     
     - name: Lint with flake8
       run: |
-        echo "🔍 Running flake8 linting..."
+        echo "[LINT] Running flake8 linting..."
         flake8 src/ examples/ --max-line-length=127 --extend-ignore=E203,W503 --statistics
-        echo "✅ Flake8 linting passed"
+        echo "[OK] Flake8 linting passed"
     
     - name: Advanced linting with pylint
       continue-on-error: true  # Pylint can be very strict
       run: |
-        echo "🔬 Running pylint analysis..."
+        echo "[ANALYSIS] Running pylint analysis..."
         pylint src/blaster/ --output-format=json > pylint-report.json || true
         pylint src/blaster/ --output-format=text || true
-        echo "✅ Pylint analysis completed"
+        echo "[OK] Pylint analysis completed"
     
     - name: Type checking with mypy
       continue-on-error: true  # Type checking can fail on Cython modules
       run: |
         echo "🧠 Running type checking..."
         mypy src/blaster/ --ignore-missing-imports --json-report mypy-report || true
-        echo "✅ Type checking completed"
+        echo "[OK] Type checking completed"
     
     - name: Complexity analysis
       run: |
-        echo "📊 Analyzing code complexity..."
+        echo "[INFO] Analyzing code complexity..."
         find src/ -name "*.py" -exec py-complexity {} \; > complexity-report.txt || true
-        echo "✅ Complexity analysis completed"
+        echo "[OK] Complexity analysis completed"
     
     - name: Upload quality reports
       uses: actions/upload-artifact@v4
@@ -151,26 +151,26 @@ jobs:
     
     - name: Check dependency licenses
       run: |
-        echo "📄 Checking dependency licenses..."
+        echo "[LICENSE] Checking dependency licenses..."
         # Install project first to get all dependencies
         pip install -e .
         pip-licenses --format=json --output-file=licenses-report.json
         pip-licenses --format=table
-        echo "✅ License check completed"
+        echo "[OK] License check completed"
     
     - name: Audit dependencies for vulnerabilities
       run: |
-        echo "🔒 Auditing dependencies for vulnerabilities..."
+        echo "[SECURITY] Auditing dependencies for vulnerabilities..."
         pip-audit --format=json --output=audit-report.json || true
         pip-audit --format=table || true
-        echo "✅ Dependency audit completed"
+        echo "[OK] Dependency audit completed"
     
     - name: Check for outdated dependencies
       run: |
-        echo "📅 Checking for outdated dependencies..."
+        echo "[DEPS] Checking for outdated dependencies..."
         pip list --outdated --format=json > outdated-report.json || true
         pip list --outdated || true
-        echo "✅ Outdated dependency check completed"
+        echo "[OK] Outdated dependency check completed"
     
     - name: Upload dependency reports
       uses: actions/upload-artifact@v4
@@ -235,37 +235,37 @@ jobs:
     
     - name: Generate summary report
       run: |
-        echo "# 📊 Code Quality & Security Summary Report" > quality-summary.md
+        echo "# [INFO] Code Quality & Security Summary Report" > quality-summary.md
         echo "Generated on: $(date)" >> quality-summary.md
         echo "" >> quality-summary.md
         
-        echo "## 🔒 Security Analysis" >> quality-summary.md
+        echo "## [SECURITY] Security Analysis" >> quality-summary.md
         if [ -f security-reports/safety-report.json ]; then
-          echo "- ✅ Safety vulnerability scan completed" >> quality-summary.md
+          echo "- [OK] Safety vulnerability scan completed" >> quality-summary.md
         fi
         if [ -f security-reports/bandit-report.json ]; then
-          echo "- ✅ Bandit security analysis completed" >> quality-summary.md
+          echo "- [OK] Bandit security analysis completed" >> quality-summary.md
         fi
         if [ -f security-reports/semgrep-report.json ]; then
-          echo "- ✅ Semgrep code quality scan completed" >> quality-summary.md
+          echo "- [OK] Semgrep code quality scan completed" >> quality-summary.md
         fi
         echo "" >> quality-summary.md
         
-        echo "## 🎨 Code Quality" >> quality-summary.md
+        echo "## [FORMAT] Code Quality" >> quality-summary.md
         echo "- Code formatting: ${{ needs.code-quality.result }}" >> quality-summary.md
         echo "- Linting analysis: Available in artifacts" >> quality-summary.md
         echo "" >> quality-summary.md
         
-        echo "## 📦 Dependencies" >> quality-summary.md
+        echo "## [ARTIFACTS] Dependencies" >> quality-summary.md
         if [ -f dependency-reports/licenses-report.json ]; then
-          echo "- ✅ License compatibility check completed" >> quality-summary.md
+          echo "- [OK] License compatibility check completed" >> quality-summary.md
         fi
         if [ -f dependency-reports/audit-report.json ]; then
-          echo "- ✅ Vulnerability audit completed" >> quality-summary.md
+          echo "- [OK] Vulnerability audit completed" >> quality-summary.md
         fi
         echo "" >> quality-summary.md
         
-        echo "## 📋 Report Status" >> quality-summary.md
+        echo "## [CHECK] Report Status" >> quality-summary.md
         echo "- Security scan: ${{ needs.security-scan.result }}" >> quality-summary.md
         echo "- Quality analysis: ${{ needs.code-quality.result }}" >> quality-summary.md
         echo "- Dependency check: ${{ needs.dependency-check.result }}" >> quality-summary.md

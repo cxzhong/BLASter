@@ -107,7 +107,7 @@ jobs:
         import numpy as np
         basis = np.array([[10, 2], [3, 7]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'✅ Wheel installation test passed: RHF = {result.rhf:.6f}')
+        print(f'[OK] Wheel installation test passed: RHF = {result.rhf:.6f}')
         "
         pip uninstall -y blaster
     
@@ -119,12 +119,12 @@ jobs:
         import numpy as np
         basis = np.array([[5, 1], [1, 5]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'✅ Source installation test passed: RHF = {result.rhf:.6f}')
+        print(f'[OK] Source installation test passed: RHF = {result.rhf:.6f}')
         "
     
     - name: Display artifacts
       run: |
-        echo "📦 Built artifacts:"
+        echo "[ARTIFACTS] Built artifacts:"
         echo "Wheels:"
         find . -name "*.whl" -exec ls -lh {} \;
         echo "Source distributions:"
@@ -228,7 +228,7 @@ jobs:
         pip install blaster
         \`\`\`
         
-        ## 📚 Usage
+        ## [DOCS] Usage
         \`\`\`python
         import blaster
         import numpy as np
@@ -241,7 +241,7 @@ jobs:
         print(f"Root Hermite Factor: {result.rhf:.6f}")
         \`\`\`
         
-        ## 📦 Available Assets
+        ## [ARTIFACTS] Available Assets
         - Wheels for Linux (x86_64), macOS (x86_64, arm64), Windows (AMD64)
         - Source distribution for other platforms
         - All Python versions 3.8-3.13 supported
@@ -271,13 +271,13 @@ jobs:
     steps:
     - name: Report status
       run: |
-        echo "🎯 Release workflow completed!"
+        echo "[STATUS] Release workflow completed!"
         echo "Build status: ${{ needs.build-wheels.result }}"
         echo "Test status: ${{ needs.test-release.result }}"
         
         if [[ "${{ needs.build-wheels.result }}" == "success" && "${{ needs.test-release.result }}" == "success" ]]; then
-          echo "✅ All builds and tests passed!"
+          echo "[OK] All builds and tests passed!"
         else
-          echo "❌ Some builds or tests failed"
+          echo "[ERROR] Some builds or tests failed"
           exit 1
         fi

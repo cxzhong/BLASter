@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🧪 BLASter Local Testing Script"
+echo "[TEST] BLASter Local Testing Script"
 echo "================================"
 
 # Colors for output
@@ -17,21 +17,21 @@ NC='\033[0m' # No Color
 # Function to print status
 print_status() {
     if [ $1 -eq 0 ]; then
-        echo -e "${GREEN}✅ $2${NC}"
+        echo -e "${GREEN}[OK] $2${NC}"
     else
-        echo -e "${RED}❌ $2${NC}"
+        echo -e "${RED}[ERROR] $2${NC}"
         return 1
     fi
 }
 
 # Function to print warning
 print_warning() {
-    echo -e "${YELLOW}⚠️ $1${NC}"
+    echo -e "${YELLOW}[WARNING] $1${NC}"
 }
 
 # Check if we're in the right directory
 if [ ! -f "pyproject.toml" ]; then
-    echo -e "${RED}❌ Must be run from BLASter root directory${NC}"
+    echo -e "${RED}[ERROR] Must be run from BLASter root directory${NC}"
     exit 1
 fi
 
@@ -39,14 +39,14 @@ echo "📍 Running from: $(pwd)"
 echo ""
 
 # 1. Check Python environment
-echo "🐍 Python Environment Check"
+echo "[PYTHON] Python Environment Check"
 echo "----------------------------"
 python --version
 pip --version
 echo ""
 
 # 2. Install development dependencies
-echo "📦 Installing Development Dependencies"
+echo "[ARTIFACTS] Installing Development Dependencies"
 echo "-------------------------------------"
 pip install --upgrade pip setuptools wheel build
 pip install flake8 black isort mypy safety bandit
@@ -54,7 +54,7 @@ print_status $? "Development dependencies installed"
 echo ""
 
 # 3. Code formatting checks (like in quality.yml)
-echo "🎨 Code Formatting Check"
+echo "[FORMAT] Code Formatting Check"
 echo "-------------------------"
 if command -v black &> /dev/null; then
     black --check --diff src/ examples/ 2>/dev/null
@@ -72,7 +72,7 @@ fi
 echo ""
 
 # 4. Linting checks
-echo "🔍 Linting Check"
+echo "[LINT] Linting Check"
 echo "----------------"
 if command -v flake8 &> /dev/null; then
     flake8 src/ examples/ --max-line-length=127 --extend-ignore=E203,W503 --statistics
@@ -83,7 +83,7 @@ fi
 echo ""
 
 # 5. Security scan
-echo "🔒 Security Scan"
+echo "[SECURITY] Security Scan"
 echo "----------------"
 if command -v safety &> /dev/null; then
     safety check --json > /tmp/safety-report.json 2>/dev/null || true
@@ -101,7 +101,7 @@ fi
 echo ""
 
 # 6. Build test (like in build-test.yml)
-echo "🔨 Build Test"
+echo "[BUILD] Build Test"
 echo "-------------"
 echo "Testing automatic Eigen3 download and build..."
 
@@ -123,7 +123,7 @@ fi
 echo ""
 
 # 7. Installation test
-echo "📥 Installation Test"
+echo "[INSTALL] Installation Test"
 echo "--------------------"
 echo "Installing BLASter from built wheel..."
 
@@ -139,36 +139,36 @@ fi
 echo ""
 
 # 8. Functionality test (like in build-test.yml)
-echo "🧮 Functionality Test"
+echo "[FUNCTION] Functionality Test"
 echo "----------------------"
 python -c "
 import blaster
 import numpy as np
-print('✅ BLASter imported successfully')
+print('[OK] BLASter imported successfully')
 
 # Test basic LLL reduction
 basis = np.array([[10, 2, 3], [1, 12, 4], [2, 1, 15]])
 result = blaster.lll_reduce(basis, verbose=False)
 
-print(f'✅ LLL reduction works: RHF = {result.rhf:.6f}')
-print(f'✅ Basis shape: {result.reduced_basis.shape}')
-print(f'✅ Transformation verified: {result.verify_transformation()}')
+print(f'[OK] LLL reduction works: RHF = {result.rhf:.6f}')
+print(f'[OK] Basis shape: {result.reduced_basis.shape}')
+print(f'[OK] Transformation verified: {result.verify_transformation()}')
 
 # Test BKZ reduction  
 bkz_result = blaster.bkz_reduce(basis, beta=3, verbose=False)
-print(f'✅ BKZ reduction works: RHF = {bkz_result.rhf:.6f}')
+print(f'[OK] BKZ reduction works: RHF = {bkz_result.rhf:.6f}')
 
 # Test convenience functions
 reduced = blaster.lll(basis, verbose=False)
-print(f'✅ Convenience function works: shape = {reduced.shape}')
+print(f'[OK] Convenience function works: shape = {reduced.shape}')
 
-print('🎉 All functionality tests passed!')
+print('SUCCESS: All functionality tests passed!')
 "
 print_status $? "Basic functionality test"
 echo ""
 
 # 9. Console script test
-echo "⚡ Console Script Test"
+echo "[SCRIPT] Console Script Test"
 echo "----------------------"
 if command -v blaster &> /dev/null; then
     blaster --help > /dev/null
@@ -179,7 +179,7 @@ fi
 echo ""
 
 # 10. Example script test (like in docs.yml)
-echo "📚 Example Script Test"
+echo "[DOCS] Example Script Test"
 echo "----------------------"
 if [ -f "examples/demo.py" ]; then
     python examples/demo.py > /dev/null
@@ -190,25 +190,25 @@ fi
 echo ""
 
 # 11. Documentation check
-echo "📖 Documentation Check"
+echo "[README] Documentation Check"
 echo "----------------------"
 docs_ok=0
 
 # Check essential files
 for file in "README.md" "INTERFACE_README.md" "LICENSE" "pyproject.toml"; do
     if [ -f "$file" ]; then
-        echo "✅ $file exists"
+        echo "[OK] $file exists"
     else
-        echo "❌ Missing: $file"
+        echo "[ERROR] Missing: $file"
         docs_ok=1
     fi
 done
 
 # Check README content
 if grep -qi "pip install" README.md; then
-    echo "✅ README includes pip installation"
+    echo "[OK] README includes pip installation"
 else
-    echo "❌ README missing pip installation"
+    echo "[ERROR] README missing pip installation"
     docs_ok=1
 fi
 
@@ -216,7 +216,7 @@ print_status $((1-docs_ok)) "Documentation completeness"
 echo ""
 
 # 12. Performance benchmark
-echo "🏃 Performance Benchmark"
+echo "[PERFORMANCE] Performance Benchmark"
 echo "------------------------"
 python -c "
 import blaster
@@ -234,7 +234,7 @@ print_status $? "Performance benchmark"
 echo ""
 
 # Summary
-echo "📋 Test Summary"
+echo "[CHECK] Test Summary"
 echo "==============="
 echo "Local testing completed! This simulates key parts of the GitHub Actions workflows."
 echo ""

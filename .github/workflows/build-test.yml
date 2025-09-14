@@ -99,36 +99,36 @@ jobs:
         python -c "
         import blaster
         import numpy as np
-        print('✅ BLASter imported successfully')
+        print('[OK] BLASter imported successfully')
         
         # Test basic LLL reduction
         basis = np.array([[10, 2, 3], [1, 12, 4], [2, 1, 15]])
         result = blaster.lll_reduce(basis, verbose=False)
         
-        print(f'✅ LLL reduction works: RHF = {result.rhf:.6f}')
-        print(f'✅ Basis shape: {result.reduced_basis.shape}')
-        print(f'✅ Transformation verified: {result.verify_transformation()}')
+        print(f'[OK] LLL reduction works: RHF = {result.rhf:.6f}')
+        print(f'[OK] Basis shape: {result.reduced_basis.shape}')
+        print(f'[OK] Transformation verified: {result.verify_transformation()}')
         
         # Test BKZ reduction
         bkz_result = blaster.bkz_reduce(basis, beta=3, verbose=False)
-        print(f'✅ BKZ reduction works: RHF = {bkz_result.rhf:.6f}')
+        print(f'[OK] BKZ reduction works: RHF = {bkz_result.rhf:.6f}')
         
         # Test convenience functions
         reduced = blaster.lll(basis, verbose=False)
-        print(f'✅ Convenience function works: shape = {reduced.shape}')
+        print(f'[OK] Convenience function works: shape = {reduced.shape}')
         
-        print('🎉 All functionality tests passed!')
+        print('SUCCESS: All functionality tests passed!')
         "
     
     - name: Test console script
       run: |
         blaster --help
-        echo "✅ Console script works"
+        echo "[OK] Console script works"
     
     - name: Run demo script
       run: |
         python examples/demo.py
-        echo "✅ Demo script completed successfully"
+        echo "[OK] Demo script completed successfully"
     
     - name: Upload wheel artifacts
       uses: actions/upload-artifact@v4
@@ -172,7 +172,7 @@ jobs:
         import numpy as np
         basis = np.array([[1, 2], [2, 3]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'✅ Installation from sdist works: RHF = {result.rhf:.6f}')
+        print(f'[OK] Installation from sdist works: RHF = {result.rhf:.6f}')
         "
     
     - name: Upload sdist artifact
@@ -237,7 +237,7 @@ jobs:
         import numpy as np
         basis = np.array([[5, 1], [1, 5]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'✅ Scenario ${{ matrix.scenario }} works: RHF = {result.rhf:.6f}')
+        print(f'[OK] Scenario ${{ matrix.scenario }} works: RHF = {result.rhf:.6f}')
         "
 
   code-quality:
@@ -300,7 +300,7 @@ jobs:
         import numpy as np
         import time
         
-        print('🔥 Performance Benchmarks')
+        print('[PERF] Performance Benchmarks')
         print('=' * 40)
         
         # Small lattice benchmark
@@ -317,7 +317,7 @@ jobs:
         elapsed = time.time() - start
         print(f'16x16 LLL: {elapsed:.3f}s, RHF: {result.rhf:.6f}')
         
-        print('✅ Performance tests completed')
+        print('[OK] Performance tests completed')
         "
 
   documentation:
@@ -333,12 +333,12 @@ jobs:
         echo "Checking documentation completeness..."
         
         # Check that key documentation files exist
-        test -f README.md || (echo "❌ Missing README.md" && exit 1)
-        test -f INTERFACE_README.md || (echo "❌ Missing INTERFACE_README.md" && exit 1)
-        test -f examples/demo.py || (echo "❌ Missing examples/demo.py" && exit 1)
+        test -f README.md || (echo "[ERROR] Missing README.md" && exit 1)
+        test -f INTERFACE_README.md || (echo "[ERROR] Missing INTERFACE_README.md" && exit 1)
+        test -f examples/demo.py || (echo "[ERROR] Missing examples/demo.py" && exit 1)
         
         # Check that README mentions the new features
-        grep -q "automatic" README.md || (echo "⚠️ README should mention automatic Eigen3" && exit 1)
-        grep -q "pip install" README.md || (echo "⚠️ README should mention pip install" && exit 1)
+        grep -q "automatic" README.md || (echo "[WARNING] README should mention automatic Eigen3" && exit 1)
+        grep -q "pip install" README.md || (echo "[WARNING] README should mention pip install" && exit 1)
         
-        echo "✅ Documentation checks passed"
+        echo "[OK] Documentation checks passed"
