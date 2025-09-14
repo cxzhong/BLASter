@@ -14,6 +14,7 @@ speed ups that are possible in lattice reduction software.
 __version__ = "0.1.0"
 
 from .lattice_io import *
+
 # Import main classes and functions
 from .size_reduction import (
     is_lll_reduced,

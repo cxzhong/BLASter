@@ -11,6 +11,7 @@ from sys import stderr
 import numpy as np
 
 from .blaster import reduce
+
 # Local imports
 from .lattice_io import read_qary_lattice, write_lattice
 from .stats import gaussian_heuristic, get_profile, rhf, slope
