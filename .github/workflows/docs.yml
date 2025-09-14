@@ -110,6 +110,51 @@ jobs:
         
         print('SUCCESS: All interface examples work!')
         "
+    
+    - name: Test larger matrix interfaces
+      run: |
+        echo "🔧 Testing larger matrices (20×20, 40×40)"
+        python -c "
+        import blaster
+        import numpy as np
+        import time
+        
+        print('Testing 20×20 matrix...')
+        # Generate a random 20x20 lattice basis
+        np.random.seed(42)  # For reproducible results
+        basis_20 = np.random.randint(-10, 11, size=(20, 20))
+        
+        start_time = time.time()
+        result_20 = blaster.lll_reduce(basis_20, verbose=False)
+        time_20 = time.time() - start_time
+        
+        print(f'[OK] 20×20 LLL reduction: RHF = {result_20.rhf:.6f}, Time = {time_20:.2f}s')
+        print(f'[OK] 20×20 Result shape: {result_20.reduced_basis.shape}')
+        
+        # Test BKZ on smaller block size for 20x20
+        result_20_bkz = blaster.bkz_reduce(basis_20, beta=5, verbose=False)
+        print(f'[OK] 20×20 BKZ-5 reduction: RHF = {result_20_bkz.rhf:.6f}')
+        
+        print('Testing 40×40 matrix...')
+        # Generate a random 40x40 lattice basis
+        basis_40 = np.random.randint(-5, 6, size=(40, 40))
+        
+        start_time = time.time()
+        result_40 = blaster.lll_reduce(basis_40, verbose=False)
+        time_40 = time.time() - start_time
+        
+        print(f'[OK] 40×40 LLL reduction: RHF = {result_40.rhf:.6f}, Time = {time_40:.2f}s')
+        print(f'[OK] 40×40 Result shape: {result_40.reduced_basis.shape}')
+        
+        # Verify quality metrics work on larger matrices
+        print(f'[OK] 20×20 orthogonality defect: {result_20.orthogonality_defect:.6f}')
+        print(f'[OK] 40×40 orthogonality defect: {result_40.orthogonality_defect:.6f}')
+        
+        # Performance comparison
+        print(f'[OK] Performance scaling: 40×40 took {time_40/time_20:.1f}x longer than 20×20')
+        
+        print('SUCCESS: Large matrix interface tests completed!')
+        "
 
   check-documentation:
     name: Documentation Completeness Check

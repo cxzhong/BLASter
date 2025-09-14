@@ -40,17 +40,27 @@ jobs:
         CIBW_ARCHS_LINUX: x86_64
         CIBW_ARCHS_MACOS: x86_64 arm64
         CIBW_ARCHS_WINDOWS: AMD64
-        # Install build dependencies
+        # Install build dependencies only (Eigen3 is auto-downloaded by setup.py)
         CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy
+        # Linux: Only install Python dependencies - no system packages needed
+        CIBW_BEFORE_BUILD_LINUX: >
+          pip install setuptools wheel Cython numpy &&
+          echo "Using automatic Eigen3 download - no system packages"
         # Install LLVM and OpenMP on macOS
         CIBW_BEFORE_BUILD_MACOS: brew install llvm libomp && pip install setuptools wheel Cython numpy
         # Skip built-in wheel testing - we do comprehensive testing in test-release job
         CIBW_TEST_SKIP: "*"
         # Environment variables for builds
-        CIBW_ENVIRONMENT_LINUX: CC=gcc CXX=g++
+        CIBW_ENVIRONMENT_LINUX: >
+          CC=gcc 
+          CXX=g++ 
+          BLASTER_AUTO_EIGEN=1
+          PIP_NO_BUILD_ISOLATION=false
         CIBW_ENVIRONMENT_MACOS: >
           CC=$(brew --prefix llvm)/bin/clang
           CXX=$(brew --prefix llvm)/bin/clang++
+          BLASTER_AUTO_EIGEN=1
+          PIP_NO_BUILD_ISOLATION=false
       run: python -m cibuildwheel --output-dir wheelhouse
     
     - name: Upload wheel artifacts
