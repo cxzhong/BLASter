@@ -137,5 +137,10 @@ def __main__():
     assert (B @ U == B_red).all()
 
 
-if __name__ == '__main__':
+def main():
+    """Entry point for the blaster console script."""
     __main__()
+
+
+if __name__ == '__main__':
+    main()

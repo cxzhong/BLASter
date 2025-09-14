@@ -26,17 +26,31 @@ We **do**:
 
 ## Requirements
 
-- python3
-- Cython version 3.0 or later
-- Python modules: `cysignals numpy setuptools` (installed system-wide or in locally through `make venv`)
-- The Eigen library version 3 or later (installed system-wide or locally through `make eigen3`)
+- python3 (3.8 or later)
+- Cython version 3.0 or later (installed automatically)
+- Python modules: `cysignals numpy setuptools matplotlib` (installed automatically)
+- **Eigen3 headers** (downloaded automatically during installation)
 
 Optional:
 
 - Python module: virtualenv (for creating a local virtual environment to install python3 modules)
 - fplll (for generating q-ary lattices with the `latticegen` command)
 
-## Building
+## Installation
+
+### Modern PEP 517 Installation (Recommended)
+
+BLASter now supports modern Python packaging with automatic dependency management:
+
+```bash
+# Install from source (automatically downloads Eigen3)
+pip install -e .
+
+# Or build wheel for distribution
+python -m build
+```
+
+### Legacy Building
 
 - Optional: Run `make eigen3` to install libeigen3 library in a subdirectory.
 - Optional: Run `make venv` to create a local virtual environment and install the required python3 modules.
