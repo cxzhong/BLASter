@@ -35,7 +35,7 @@ jobs:
     
     - name: Build wheels
       env:
-        CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
+        CIBW_BUILD: cp311-* cp312-* cp313-*
         CIBW_SKIP: "*-musllinux_*"  # Skip musl Linux for now due to potential build issues
         CIBW_ARCHS_LINUX: x86_64
         CIBW_ARCHS_MACOS: x86_64 arm64
@@ -376,7 +376,7 @@ jobs:
         ## [ARTIFACTS] Available Assets
         - Wheels for Linux (x86_64), macOS (x86_64, arm64), Windows (AMD64)
         - Source distribution for other platforms
-        - All Python versions 3.10-3.13 supported
+        - All Python versions 3.11-3.13 supported
         
         See the [Interface Documentation](https://github.com/zhongcx/BLASter/blob/main/INTERFACE_README.md) for complete API reference.
         EOF

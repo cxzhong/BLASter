@@ -10,7 +10,7 @@ This directory contains comprehensive CI/CD workflows for the BLASter lattice re
 **Purpose:** Comprehensive testing across multiple platforms and Python versions
 
 **Key Features:**
-- **Matrix Testing:** Tests on Ubuntu, macOS, and Windows with Python 3.10-3.13
+- **Matrix Testing:** Tests on Ubuntu, macOS, and Windows with Python 3.11-3.13
 - **Automatic Eigen3 Testing:** Validates automatic Eigen3 download without system dependencies
 - **Multi-scenario Testing:** Tests different Eigen3 installation scenarios (no-eigen, system-eigen, conda-eigen)
 - **Wheel Building:** Creates and tests installable wheels
@@ -32,7 +32,7 @@ This directory contains comprehensive CI/CD workflows for the BLASter lattice re
 
 **Key Features:**
 - **Multi-platform Wheels:** Builds wheels for Linux (x86_64), macOS (x86_64, arm64), Windows (AMD64)
-- **Python Version Support:** Python 3.10-3.13 compatibility
+- **Python Version Support:** Python 3.11-3.13 compatibility
 - **cibuildwheel Integration:** Professional wheel building with testing
 - **Dual Publishing:** Supports both Test PyPI and production PyPI
 - **GitHub Releases:** Automatic release creation with assets and changelog
@@ -122,7 +122,7 @@ Create these environments in your repository settings and add the respective API
 All workflows specifically test the automatic Eigen3 download feature by intentionally NOT installing system Eigen3 packages. This validates that users can install BLASter without manual dependency management.
 
 ### Matrix Testing Strategy
-- **Comprehensive Coverage:** Tests key Python versions (3.10-3.13) on major platforms
+- **Comprehensive Coverage:** Tests key Python versions (3.11-3.13) on major platforms
 - **Selective Exclusions:** Reduces CI time while maintaining good coverage
 - **Failure Isolation:** `fail-fast: false` ensures all combinations are tested
 
