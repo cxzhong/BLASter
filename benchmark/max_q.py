@@ -3,7 +3,7 @@ import os
 import signal
 import subprocess
 
-ERROR_FILE = open("results/max_q_errors.txt", "w", encoding='utf8')
+ERROR_FILE = open("results/max_q_errors.txt", "w", encoding="utf8")
 NUM_TRIALS = 10
 
 
@@ -20,9 +20,15 @@ def gen_lattice(m, lgq, seed, path):
 def run_command(cmd, timeout, description):
     # The os.setsid() is passed in the argument preexec_fn so
     # it's run after the fork() and before  exec() to run the shell.
-    cmd = f"/usr/bin/time -f \"%e\" {cmd}"
-    with subprocess.Popen(cmd, text=True, shell=True, preexec_fn=os.setsid,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+    cmd = f'/usr/bin/time -f "%e" {cmd}'
+    with subprocess.Popen(
+        cmd,
+        text=True,
+        shell=True,
+        preexec_fn=os.setsid,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ) as process:
         try:
             stdout, stderr = process.communicate(None, timeout=timeout)
         except subprocess.TimeoutExpired as exc:
@@ -33,7 +39,7 @@ def run_command(cmd, timeout, description):
             # POSIX _communicate already populated the output so
             # far into the TimeoutExpired exception.
             process.wait()
-            print(f"Timeout expired for command \"{cmd}\"", file=ERROR_FILE)
+            print(f'Timeout expired for command "{cmd}"', file=ERROR_FILE)
             if exc.stderr is not None:
                 print(exc.stderr.decode("utf-8"), file=ERROR_FILE, flush=True)
             return None
@@ -45,7 +51,10 @@ def run_command(cmd, timeout, description):
         retcode = process.poll()
         result = subprocess.CompletedProcess(process.args, retcode, stdout, stderr)
     if result.returncode != 0:
-        print(f"{description} finished with error code {result.returncode}.", file=ERROR_FILE)
+        print(
+            f"{description} finished with error code {result.returncode}.",
+            file=ERROR_FILE,
+        )
         print(result.stderr, file=ERROR_FILE, flush=True)
         return None
     return float(result.stderr.strip())
@@ -66,8 +75,10 @@ def count_successes(m, lgq, path):
             wt.append(result)
 
     # Report times
-    mint, avgt, maxt = (min(wt), sum(wt)/len(wt), max(wt)) if wt else (0,0,0)
-    print(f"{m:4d},{lgq:2d},{len(wt):2d},{mint:6.2f},{avgt:6.2f},{maxt:6.2f}", flush=True)
+    mint, avgt, maxt = (min(wt), sum(wt) / len(wt), max(wt)) if wt else (0, 0, 0)
+    print(
+        f"{m:4d},{lgq:2d},{len(wt):2d},{mint:6.2f},{avgt:6.2f},{maxt:6.2f}", flush=True
+    )
 
     # Return number of successes
     return len(wt)

@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 from blaster.stats import rhf, slope, potential
 
+
 # Adaption of:
 # https://github.com/keeganryan/flatter/blob/main/scripts/visualize_profile.py
 #
@@ -19,7 +20,7 @@ class Delta:
 
 
 class ProfileSet:
-    ''' Model the sequence of Gram-Schmidt vector lengths '''
+    """Model the sequence of Gram-Schmidt vector lengths"""
 
     def __init__(self, fname):
         self.reset()
@@ -46,26 +47,26 @@ class ProfileSet:
         ln = ln.rstrip()
         end_i = ln.find(")")
         start_i = ln.find("profile")
-        if "," not in ln[start_i + 8:end_i]:
+        if "," not in ln[start_i + 8 : end_i]:
             # This is a reset line
-            dim = int(ln[start_i+8:end_i])
+            dim = int(ln[start_i + 8 : end_i])
             self.reset_profile(dim)
         else:
-            bounds = ln[start_i+8:end_i].split(",")
+            bounds = ln[start_i + 8 : end_i].split(",")
             start = int(bounds[0])
             end = int(bounds[1])
 
-            ts = ln[ln.find("[")+1:ln.find("]")]
+            ts = ln[ln.find("[") + 1 : ln.find("]")]
             ts = float(ts)
 
             end_i = ln.find("]")
 
-            val_pairs = [c.split("+") for c in ln[end_i+1:].split(" ") if len(c) > 0]
+            val_pairs = [c.split("+") for c in ln[end_i + 1 :].split(" ") if len(c) > 0]
 
             if len(val_pairs) != end - start:
                 raise ValueError("Unexpected number of values for profile line")
 
-            vals = [float(v[0])+float(v[1]) for v in val_pairs]
+            vals = [float(v[0]) + float(v[1]) for v in val_pairs]
 
             self.append(start, end, vals, ts)
 
@@ -183,7 +184,7 @@ class ProfileSet:
 
         npairs, sparse_pairs = len(pairs), [pairs[0]]
         for i in range(1, npairs):
-            if i == npairs - 1 or abs(pairs[i][1] - pairs[i-1][1]) > 1e-6:
+            if i == npairs - 1 or abs(pairs[i][1] - pairs[i - 1][1]) > 1e-6:
                 sparse_pairs.append(pairs[i])
 
         with open(fname, "w") as f:
@@ -202,7 +203,9 @@ def convert_logfiles(logfile, outfile):
 def __main__():
     parser = argparse.ArgumentParser()
     parser.add_argument("logfile", type=str, help="Input: flatter logfile")
-    parser.add_argument("outfile", type=str, help="Output: RHF as function of elapsed wall time")
+    parser.add_argument(
+        "outfile", type=str, help="Output: RHF as function of elapsed wall time"
+    )
     args = parser.parse_args()
     convert_logfiles(args.logfile, args.outfile)
 

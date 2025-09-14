@@ -18,7 +18,9 @@ mqs = [
 seeds = range(10)
 cmd_blaster = "../python3 ../src/app.py -q"
 temp_lat = "../output/temp.lat"
-other_logs = {m: open(f'./logs_other_{m}.csv', mode='w', encoding='utf8') for (m, q) in mqs}
+other_logs = {
+    m: open(f"./logs_other_{m}.csv", mode="w", encoding="utf8") for (m, q) in mqs
+}
 
 
 def is_float(x):
@@ -28,19 +30,22 @@ def is_float(x):
         return False
     return True
 
+
 def parse_time_usage(time_output):
     times = time_output.strip().split(" ")
     # parts = time_output.split("\n")[1:4]
     # times = [part.split("\t")[1] for part in parts]
-    return {'real': times[0], 'user': times[1], 'sys': times[2]}
+    return {"real": times[0], "user": times[1], "sys": times[2]}
 
 
 def run_command(cmd, logfile=None, capture_time=False, flatter_fail=False):
-    print(f"Executing \"{cmd}\".", flush=True)
+    print(f'Executing "{cmd}".', flush=True)
     if capture_time:
         result = subprocess.run(
-            f"/usr/bin/time -f \"%e %U %S\" {cmd}",
-            text=True, shell=True, capture_output=True
+            f'/usr/bin/time -f "%e %U %S" {cmd}',
+            text=True,
+            shell=True,
+            capture_output=True,
         )
     else:
         result = subprocess.run(cmd, shell=True)
@@ -57,7 +62,7 @@ def run_command(cmd, logfile=None, capture_time=False, flatter_fail=False):
 
 
 def gen_lattice(m, q, seed, path):
-    n = m//2
+    n = m // 2
     run_command(f"latticegen -randseed {seed} q {m} {n} {q} q > {path}")
 
 
@@ -75,7 +80,9 @@ def run_blaster_deeplll(m, q, seed, path, depth):
 
 def run_blaster_bkz(m, q, seed, path, beta, bkz_prog=2):
     logfile = f"../logs/progbkz{beta}_{m}_{q}_{seed}.csv"
-    run_command(f"{cmd_blaster} -i {path} -l {logfile} -b{beta} -P{bkz_prog} -t1", logfile)
+    run_command(
+        f"{cmd_blaster} -i {path} -l {logfile} -b{beta} -P{bkz_prog} -t1", logfile
+    )
 
 
 def run_flatter(m, q, seed, path, num_threads, alpha=None):
@@ -94,10 +101,14 @@ def run_fplll(m, q, seed, path):
     t = run_command(cmd, capture_time=True)
     prof = get_profile(read_qary_lattice(temp_lat))
     data = {
-        'seed': seed,'type': f"fpLLL",
-        'slope': f"{slope(prof):.6f}", 'rhf': f"{rhf(prof):.5f}"
+        "seed": seed,
+        "type": f"fpLLL",
+        "slope": f"{slope(prof):.6f}",
+        "rhf": f"{rhf(prof):.5f}",
     }
-    print(','.join(str(v) for k, v in (data | t).items()), file=other_logs[m], flush=True)
+    print(
+        ",".join(str(v) for k, v in (data | t).items()), file=other_logs[m], flush=True
+    )
     other_logs[m].flush()
 
 
@@ -106,17 +117,22 @@ def run_KEF21(m, q, seed, path, num_threads):
     t = run_command(cmd, capture_time=True)
     prof = get_profile(read_qary_lattice(temp_lat))
     data = {
-        'seed': seed,'type': f"KEF21 ({num_threads} threads)",
-        'slope': f"{slope(prof):.6f}", 'rhf': f"{rhf(prof):.5f}"
+        "seed": seed,
+        "type": f"KEF21 ({num_threads} threads)",
+        "slope": f"{slope(prof):.6f}",
+        "rhf": f"{rhf(prof):.5f}",
     }
-    print(','.join(str(v) for k, v in (data | t).items()), file=other_logs[m], flush=True)
+    print(
+        ",".join(str(v) for k, v in (data | t).items()), file=other_logs[m], flush=True
+    )
 
 
 def __main__():
     global mqs
 
-    lattices = [(m, q, seed, f"../input/{m}_{q}_{seed}") for (m, q) in mqs for seed in seeds]
-
+    lattices = [
+        (m, q, seed, f"../input/{m}_{q}_{seed}") for (m, q) in mqs for seed in seeds
+    ]
 
     for f in other_logs.values():
         print("seed,type,slope,rhf,real (s),user (s),sys (s)", file=f, flush=True)
@@ -124,31 +140,33 @@ def __main__():
     has_cmd = False
     for i, arg in enumerate(sys.argv[1:]):
         is_cmd = True
-        if arg == 'dim':
+        if arg == "dim":
             assert 2 + i < len(sys.argv), "dim param expected!"
             dim = int(sys.argv[2 + i])
             assert dim in [m for (m, q) in mqs], "Unknown dimension"
             curq = [q for (m, q) in mqs if m == dim]
             assert len(curq) == 1
             curq = curq[0]
-            lattices = [(dim, curq, seed, f"../input/{dim}_{curq}_{seed}") for seed in seeds]
-        elif arg == 'lattices':
+            lattices = [
+                (dim, curq, seed, f"../input/{dim}_{curq}_{seed}") for seed in seeds
+            ]
+        elif arg == "lattices":
             for lat in lattices:
                 gen_lattice(*lat)
-        elif arg == 'lll':
+        elif arg == "lll":
             for lat in lattices:
                 run_blaster(*lat)
-        elif arg == 'deeplll':
+        elif arg == "deeplll":
             assert 2 + i < len(sys.argv), "depth param expected!"
             depth = int(sys.argv[2 + i])
             for lat in lattices:
                 run_blaster_deeplll(*lat, depth)
-        elif arg == 'pbkz':
+        elif arg == "pbkz":
             assert 2 + i < len(sys.argv), "beta param expected!"
             beta = int(sys.argv[2 + i])
             for lat in lattices:
                 run_blaster_bkz(*lat, beta)
-        elif arg == 'flatter':
+        elif arg == "flatter":
             assert 2 + i < len(sys.argv), "num_threads param expected!"
             num_threads = int(sys.argv[2 + i])
             alpha = None
@@ -156,10 +174,10 @@ def __main__():
                 alpha = float(sys.argv[3 + i])
             for lat in lattices:
                 run_flatter(*lat, num_threads, alpha)
-        elif arg == 'fplll':
+        elif arg == "fplll":
             for lat in lattices:
                 run_fplll(*lat)
-        elif arg == 'KEF21':
+        elif arg == "KEF21":
             assert 2 + i < len(sys.argv), "num_threads param expected!"
             num_threads = int(sys.argv[2 + i])
             for lat in lattices:
@@ -172,8 +190,11 @@ def __main__():
         f.close()
 
     if not has_cmd:
-        print(f"Usage: {sys.argv[0]} [dim d|lattices|lll|deeplll `depth`|"
-              f"pbkz `beta`|flatter `num_threads`]")
+        print(
+            f"Usage: {sys.argv[0]} [dim d|lattices|lll|deeplll `depth`|"
+            f"pbkz `beta`|flatter `num_threads`]"
+        )
+
 
 if __name__ == "__main__":
     __main__()
