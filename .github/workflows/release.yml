@@ -87,11 +87,31 @@ jobs:
   test-release:
     name: Test Release Artifacts
     needs: [build-wheels, build-sdist]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.test-os }}
+    
+    strategy:
+      matrix:
+        test-os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - test-os: ubuntu-latest
+            wheel-pattern: "wheels-ubuntu-latest/*.whl"
+          - test-os: macos-latest  
+            wheel-pattern: "wheels-macos-latest/*.whl"
+          - test-os: windows-latest
+            wheel-pattern: "wheels-windows-latest/*.whl"
     
     steps:
-    - name: Download all artifacts
+    - name: Download platform-specific wheel artifacts
       uses: actions/download-artifact@v4
+      with:
+        name: wheels-${{ matrix.test-os }}
+        path: wheels-${{ matrix.test-os }}/
+    
+    - name: Download source distribution
+      uses: actions/download-artifact@v4
+      with:
+        name: source-distribution
+        path: source-distribution/
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -99,19 +119,23 @@ jobs:
         python-version: '3.11'
     
     - name: Test wheel installation
+      shell: bash
       run: |
-        # Test a Linux wheel
-        pip install wheels-ubuntu-latest/*.whl
+        # Test platform-specific wheel
+        pip install ${{ matrix.wheel-pattern }}
         python -c "
         import blaster
         import numpy as np
         basis = np.array([[10, 2], [3, 7]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'[OK] Wheel installation test passed: RHF = {result.rhf:.6f}')
+        print(f'[OK] Wheel installation test passed on ${{ matrix.test-os }}: RHF = {result.rhf:.6f}')
         "
         pip uninstall -y blaster
     
     - name: Test source distribution installation
+      # Only test source distribution on one platform to avoid redundancy
+      if: matrix.test-os == 'ubuntu-latest'
+      shell: bash
       run: |
         pip install source-distribution/*.tar.gz
         python -c "
@@ -123,30 +147,62 @@ jobs:
         "
     
     - name: Display artifacts
+      shell: bash
       run: |
-        echo "[ARTIFACTS] Built artifacts:"
+        echo "[ARTIFACTS] Built artifacts for ${{ matrix.test-os }}:"
         echo "Wheels:"
         find . -name "*.whl" -exec ls -lh {} \;
-        echo "Source distributions:"
-        find . -name "*.tar.gz" -exec ls -lh {} \;
+        if [[ "${{ matrix.test-os }}" == "ubuntu-latest" ]]; then
+          echo "Source distributions:"
+          find . -name "*.tar.gz" -exec ls -lh {} \;
+        fi
+
+  collect-artifacts:
+    name: Collect All Artifacts
+    needs: [test-release]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download all wheel artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: wheels-*
+        merge-multiple: true
+        path: wheels/
+    
+    - name: Download source distribution
+      uses: actions/download-artifact@v4
+      with:
+        name: source-distribution
+        path: source-distribution/
+    
+    - name: Prepare artifacts for publishing
+      run: |
+        mkdir -p dist/
+        cp wheels/*.whl dist/
+        cp source-distribution/*.tar.gz dist/
+        ls -la dist/
+    
+    - name: Upload combined artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: all-release-artifacts
+        path: dist/*
+        retention-days: 30
 
   publish-test-pypi:
     name: Publish to Test PyPI
     if: ${{ github.event.inputs.test_pypi == 'true' || (github.event_name == 'push' && contains(github.ref, 'alpha')) }}
-    needs: [test-release]
+    needs: [collect-artifacts]
     runs-on: ubuntu-latest
     environment: test-pypi
     
     steps:
-    - name: Download all artifacts
+    - name: Download collected artifacts
       uses: actions/download-artifact@v4
-    
-    - name: Prepare artifacts for upload
-      run: |
-        mkdir -p dist/
-        cp wheels-*/*.whl dist/
-        cp source-distribution/*.tar.gz dist/
-        ls -la dist/
+      with:
+        name: all-release-artifacts
+        path: dist/
     
     - name: Publish to Test PyPI
       uses: pypa/gh-action-pypi-publish@v1.10.3
@@ -159,20 +215,16 @@ jobs:
   publish-pypi:
     name: Publish to PyPI
     if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'alpha') && github.event.inputs.test_pypi != 'true' }}
-    needs: [test-release]
+    needs: [collect-artifacts]
     runs-on: ubuntu-latest
     environment: pypi
     
     steps:
-    - name: Download all artifacts
+    - name: Download collected artifacts
       uses: actions/download-artifact@v4
-    
-    - name: Prepare artifacts for upload
-      run: |
-        mkdir -p dist/
-        cp wheels-*/*.whl dist/
-        cp source-distribution/*.tar.gz dist/
-        ls -la dist/
+      with:
+        name: all-release-artifacts
+        path: dist/
     
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.10.3
@@ -184,22 +236,18 @@ jobs:
   create-github-release:
     name: Create GitHub Release
     if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
-    needs: [test-release]
+    needs: [collect-artifacts]
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
     
-    - name: Download all artifacts
+    - name: Download collected artifacts
       uses: actions/download-artifact@v4
-    
-    - name: Prepare release assets
-      run: |
-        mkdir -p release-assets/
-        cp wheels-*/*.whl release-assets/
-        cp source-distribution/*.tar.gz release-assets/
-        
+      with:
+        name: all-release-artifacts
+        path: release-assets/
         # Create checksums
         cd release-assets/
         sha256sum * > checksums.txt
@@ -265,17 +313,19 @@ jobs:
   notify-completion:
     name: Notification
     if: always()
-    needs: [build-wheels, build-sdist, test-release]
+    needs: [build-wheels, build-sdist, test-release, collect-artifacts]
     runs-on: ubuntu-latest
     
     steps:
     - name: Report status
       run: |
         echo "[STATUS] Release workflow completed!"
-        echo "Build status: ${{ needs.build-wheels.result }}"
+        echo "Build wheels status: ${{ needs.build-wheels.result }}"
+        echo "Build sdist status: ${{ needs.build-sdist.result }}"
         echo "Test status: ${{ needs.test-release.result }}"
+        echo "Collect artifacts status: ${{ needs.collect-artifacts.result }}"
         
-        if [[ "${{ needs.build-wheels.result }}" == "success" && "${{ needs.test-release.result }}" == "success" ]]; then
+        if [[ "${{ needs.build-wheels.result }}" == "success" && "${{ needs.build-sdist.result }}" == "success" && "${{ needs.test-release.result }}" == "success" && "${{ needs.collect-artifacts.result }}" == "success" ]]; then
           echo "[OK] All builds and tests passed!"
         else
           echo "[ERROR] Some builds or tests failed"
