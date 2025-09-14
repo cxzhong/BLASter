@@ -42,11 +42,15 @@ jobs:
         CIBW_ARCHS_WINDOWS: AMD64
         # Install build dependencies
         CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy
+        # Install LLVM and OpenMP on macOS
+        CIBW_BEFORE_BUILD_MACOS: brew install llvm libomp && pip install setuptools wheel Cython numpy
         # Skip built-in wheel testing - we do comprehensive testing in test-release job
         CIBW_TEST_SKIP: "*"
         # Environment variables for builds
         CIBW_ENVIRONMENT_LINUX: CC=gcc CXX=g++
-        CIBW_ENVIRONMENT_MACOS: CC=clang CXX=clang++
+        CIBW_ENVIRONMENT_MACOS: >
+          CC=$(brew --prefix llvm)/bin/clang
+          CXX=$(brew --prefix llvm)/bin/clang++
       run: python -m cibuildwheel --output-dir wheelhouse
     
     - name: Upload wheel artifacts
@@ -169,9 +173,9 @@ jobs:
         ls -la isolated_test_wheels/
         
         echo ""
-  echo "Installing blaster using platform-specific wheels..."
-  python -m pip install --upgrade pip
-  pip install "numpy>=1.20" cysignals matplotlib
+        echo "Installing blaster using platform-specific wheels..."
+        python -m pip install --upgrade pip
+        pip install "numpy>=1.20" cysignals matplotlib
         
         # Get the exact wheel file and install it directly
         WHEEL_FILE=$(ls isolated_test_wheels/*.whl | head -1)
@@ -182,7 +186,7 @@ jobs:
           exit 1
         fi
         
-  pip install "$WHEEL_FILE"
+        pip install "$WHEEL_FILE"
         
         echo ""
         echo "Testing the installed package..."

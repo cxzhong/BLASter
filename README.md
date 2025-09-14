@@ -30,6 +30,10 @@ We **do**:
 - Cython version 3.0 or later (installed automatically)
 - Python modules: `cysignals numpy setuptools matplotlib` (installed automatically)
 - **Eigen3 headers** (downloaded automatically during installation)
+- **OpenMP library** (for parallel processing)
+  - Linux: Usually available by default with GCC
+  - macOS: Install with `brew install llvm libomp` (recommended) or just `brew install libomp` for system clang
+  - Windows: Included with MSVC
 
 Optional:
 
@@ -48,6 +52,22 @@ pip install -e .
 
 # Or build wheel for distribution
 python -m build
+```
+
+#### macOS Setup (Optional)
+
+For optimal performance on macOS, you can use Homebrew LLVM instead of system clang:
+
+```bash
+# Install Homebrew LLVM and OpenMP
+brew install llvm libomp
+
+# Set environment variables for compilation
+export CC=$(brew --prefix llvm)/bin/clang
+export CXX=$(brew --prefix llvm)/bin/clang++
+
+# Then install BLASter
+pip install -e .
 ```
 
 ### Legacy Building

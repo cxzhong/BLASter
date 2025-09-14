@@ -43,10 +43,11 @@ jobs:
     - name: Install system dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        # Install build tools but NOT eigen to test automatic download
-        brew install gcc libomp
-        echo "CC=gcc-13" >> $GITHUB_ENV
-        echo "CXX=g++-13" >> $GITHUB_ENV
+        # Install Homebrew LLVM and OpenMP
+        brew install llvm libomp
+        # Set up environment to use Homebrew LLVM
+        echo "CC=$(brew --prefix llvm)/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$(brew --prefix llvm)/bin/clang++" >> $GITHUB_ENV
     
     - name: Install system dependencies (Windows)
       if: runner.os == 'Windows'

@@ -123,16 +123,55 @@ def get_eigen_include_dirs():
 
 def get_compile_args():
     """Get platform-specific compile arguments."""
-    # Make sure OpenMP is used in Cython and Eigen
-    openmp_arg = "/openmp" if platform.startswith("win") else "-fopenmp"
-
+    import subprocess
+    
     compile_args = [
         "--std=c++17",
         "-DNPY_NO_DEPRECATED_API=NPY_1_9_API_VERSION",
-        openmp_arg,
     ]
-
-    link_args = [openmp_arg]
+    
+    link_args = []
+    
+    # Handle OpenMP for different platforms
+    if platform.startswith("win"):
+        # Windows: use MSVC OpenMP
+        compile_args.append("/openmp")
+        link_args.append("/openmp")
+    elif platform.startswith("darwin"):
+        # macOS: Try to use Homebrew libomp if available
+        try:
+            result = subprocess.run(
+                ["brew", "--prefix", "libomp"], 
+                capture_output=True, 
+                text=True, 
+                timeout=10
+            )
+            if result.returncode == 0:
+                libomp_prefix = result.stdout.strip()
+                print(f"  Using Homebrew OpenMP from: {libomp_prefix}")
+                # Add libomp include and library paths
+                compile_args.extend([
+                    "-fopenmp",
+                    f"-I{libomp_prefix}/include"
+                ])
+                link_args.extend([
+                    "-fopenmp", 
+                    f"-L{libomp_prefix}/lib",
+                    "-lomp"
+                ])
+            else:
+                print("  Homebrew libomp not found. Install with: brew install libomp")
+                print("  Proceeding with default clang (may not support OpenMP)")
+                compile_args.append("-fopenmp")
+                link_args.append("-fopenmp")
+        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+            print("  Homebrew not available. Install libomp manually or use: brew install libomp")
+            compile_args.append("-fopenmp")
+            link_args.append("-fopenmp")
+    else:
+        # Linux and other Unix-like: usually supports OpenMP
+        compile_args.append("-fopenmp")
+        link_args.append("-fopenmp")
 
     # Check for debug mode
     debug_mode = "--cython-gdb" in argv or os.environ.get(
