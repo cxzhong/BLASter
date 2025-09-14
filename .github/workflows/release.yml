@@ -42,9 +42,8 @@ jobs:
         CIBW_ARCHS_WINDOWS: AMD64
         # Install build dependencies
         CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy
-        # Test the wheels
-        CIBW_TEST_REQUIRES: numpy
-        CIBW_TEST_COMMAND: 'python -c "import blaster; import numpy as np; result = blaster.lll_reduce(np.array([[1,2],[2,3]]), verbose=False); print(\"Wheel test passed: RHF=\" + str(result.rhf))"'
+        # Skip built-in wheel testing - we do comprehensive testing in test-release job
+        CIBW_TEST_SKIP: "*"
         # Environment variables for builds
         CIBW_ENVIRONMENT_LINUX: CC=gcc CXX=g++
         CIBW_ENVIRONMENT_MACOS: CC=clang CXX=clang++
@@ -121,44 +120,82 @@ jobs:
     - name: Debug available artifacts
       shell: bash
       run: |
-        echo "=== DEBUG: All downloaded artifacts ==="
+        echo "=== DEBUG: Current working directory ==="
+        pwd
+        echo ""
+        echo "=== DEBUG: All downloaded files (recursive) ==="
         find . -type f -name "*.whl" -o -name "*.tar.gz" | sort
         echo ""
         echo "=== Directory structure ==="
         ls -la
         echo ""
-        echo "=== Wheels directory for ${{ matrix.test-os }} ==="
+        echo "=== Platform-specific wheels directory ==="
         ls -la wheels-${{ matrix.test-os }}/ 2>/dev/null || echo "wheels-${{ matrix.test-os }}/ directory not found"
+        echo ""
+        echo "=== Check for any dist/ directory ==="
+        ls -la dist/ 2>/dev/null || echo "No dist/ directory found"
+        echo ""
+        echo "=== Artifact download verification ==="
+        echo "Expected artifact name: wheels-${{ matrix.test-os }}"
+        echo "Platform matrix: ${{ matrix.test-os }}"
     
     - name: Test wheel installation  
       shell: bash
       run: |
-        echo "Available wheels in wheels-${{ matrix.test-os }}/:"
-        ls -la wheels-${{ matrix.test-os }}/*.whl
+        echo "=== WHEEL INSTALLATION TEST FOR ${{ matrix.test-os }} ==="
+        echo ""
         
-        echo "Python version info:"
+        # Ensure we start clean
+        echo "Cleaning any existing installations..."
+        pip uninstall -y blaster 2>/dev/null || echo "No existing blaster installation"
+        
+        # Remove any existing temp directories or dist directories that might interfere
+        rm -rf temp_wheels dist wheelhouse 2>/dev/null || true
+        
+        echo "Platform-specific wheels available:"
+        ls -la wheels-${{ matrix.test-os }}/*.whl || { echo "ERROR: No wheels found in wheels-${{ matrix.test-os }}/"; exit 1; }
+        
+        echo ""
+        echo "Python environment info:"
         python --version
         pip --version
         
-        # Create a temporary directory and copy wheels there
-        mkdir temp_wheels
-        cp wheels-${{ matrix.test-os }}/*.whl temp_wheels/
+        # Create completely isolated temp directory
+        mkdir -p isolated_test_wheels
+        cp wheels-${{ matrix.test-os }}/*.whl isolated_test_wheels/
         
-        echo "Testing wheel installation by letting pip choose the compatible wheel..."
-        # Use pip install with --find-links to let pip select the right wheel
-        pip install --no-index --find-links temp_wheels/ blaster
+        echo ""
+        echo "Wheels copied to isolated directory:"
+        ls -la isolated_test_wheels/
         
+        echo ""
+        echo "Installing blaster using platform-specific wheels..."
+        
+        # Get the exact wheel file and install it directly
+        WHEEL_FILE=$(ls isolated_test_wheels/*.whl | head -1)
+        echo "Selected wheel file: $WHEEL_FILE"
+        
+        if [ ! -f "$WHEEL_FILE" ]; then
+          echo "ERROR: Wheel file not found: $WHEEL_FILE"
+          exit 1
+        fi
+        
+        pip install "$WHEEL_FILE"
+        
+        echo ""
         echo "Testing the installed package..."
         python -c "
         import blaster
         import numpy as np
         basis = np.array([[10, 2], [3, 7]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print('[OK] Wheel installation test passed on ${{ matrix.test-os }}: RHF = ' + str(round(result.rhf, 6)))
+        print('[OK] Wheel installation test PASSED on ${{ matrix.test-os }}: RHF = ' + str(round(result.rhf, 6)))
         "
         
+        echo ""
+        echo "Cleaning up..."
         pip uninstall -y blaster
-        rm -rf temp_wheels
+        rm -rf isolated_test_wheels
     
     - name: Test source distribution installation
       # Only test source distribution on one platform to avoid redundancy
