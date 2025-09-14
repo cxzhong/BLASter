@@ -44,7 +44,7 @@ jobs:
         CIBW_BEFORE_BUILD: pip install setuptools wheel Cython numpy
         # Test the wheels
         CIBW_TEST_REQUIRES: numpy
-        CIBW_TEST_COMMAND: python -c "import blaster; import numpy as np; result = blaster.lll_reduce(np.array([[1,2],[2,3]]), verbose=False); print(f'Wheel test passed: RHF={result.rhf:.6f}')"
+        CIBW_TEST_COMMAND: 'python -c "import blaster; import numpy as np; result = blaster.lll_reduce(np.array([[1,2],[2,3]]), verbose=False); print(\"Wheel test passed: RHF=\" + str(result.rhf))"'
         # Environment variables for builds
         CIBW_ENVIRONMENT_LINUX: CC=gcc CXX=g++
         CIBW_ENVIRONMENT_MACOS: CC=clang CXX=clang++
@@ -154,7 +154,7 @@ jobs:
         import numpy as np
         basis = np.array([[10, 2], [3, 7]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'[OK] Wheel installation test passed on ${{ matrix.test-os }}: RHF = {result.rhf:.6f}')
+        print('[OK] Wheel installation test passed on ${{ matrix.test-os }}: RHF = ' + str(round(result.rhf, 6)))
         "
         
         pip uninstall -y blaster
@@ -171,7 +171,7 @@ jobs:
         import numpy as np
         basis = np.array([[5, 1], [1, 5]])
         result = blaster.lll_reduce(basis, verbose=False)
-        print(f'[OK] Source installation test passed: RHF = {result.rhf:.6f}')
+        print('[OK] Source installation test passed: RHF = ' + str(round(result.rhf, 6)))
         "
     
     - name: Display artifacts
@@ -276,7 +276,9 @@ jobs:
       with:
         name: all-release-artifacts
         path: release-assets/
-        # Create checksums
+    
+    - name: Create checksums
+      run: |
         cd release-assets/
         sha256sum * > checksums.txt
         cd ..
@@ -314,7 +316,7 @@ jobs:
         
         # Perform LLL reduction
         result = blaster.lll_reduce(basis)
-        print(f"Root Hermite Factor: {result.rhf:.6f}")
+        print("Root Hermite Factor: " + str(round(result.rhf, 6)))
         \`\`\`
         
         ## [ARTIFACTS] Available Assets
