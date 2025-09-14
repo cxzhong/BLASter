@@ -88,7 +88,7 @@ jobs:
         
         # Test with different parameters
         result1 = blaster.lll_reduce(basis, delta=0.99, verbose=False)
-        result2 = blaster.lll_reduce(basis, pruning='random', verbose=False)
+        result2 = blaster.lll_reduce(basis, delta=0.95, verbose=False)
         result3 = blaster.bkz_reduce(basis, beta=10, verbose=False)
         
         print(f'[OK] Interface test 1: RHF = {result1.rhf:.6f}')

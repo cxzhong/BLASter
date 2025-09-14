@@ -57,6 +57,27 @@ class LLLResult:
         red_det = abs(np.linalg.det(self.reduced_basis))
         return orig_det / red_det if red_det != 0 else float("inf")
 
+    @property
+    def orthogonality_defect(self) -> float:
+        """
+        Orthogonality defect of the reduced basis.
+        
+        The orthogonality defect measures how far the basis is from being orthogonal.
+        It's defined as the ratio of the product of basis vector norms to the volume.
+        A perfectly orthogonal basis has orthogonality defect 1.
+        """
+        # Calculate norms of basis vectors
+        norms = np.linalg.norm(self.reduced_basis, axis=1)
+        product_of_norms = np.prod(norms)
+        
+        # Calculate volume (absolute value of determinant)
+        volume = abs(np.linalg.det(self.reduced_basis))
+        
+        if volume == 0:
+            return float("inf")
+        
+        return product_of_norms / volume
+
     def verify_transformation(self) -> bool:
         """Verify that the unimodular transformation is correct."""
         try:
