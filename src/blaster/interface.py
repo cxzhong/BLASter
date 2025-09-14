@@ -270,6 +270,7 @@ def estimate_reduction_quality(
 reduce_lattice = lll_reduce
 lll = lll_reduce_basis
 
+ 
 def bkz(basis, beta, **kwargs):
     return bkz_reduce(basis, beta, **kwargs).reduced_basis
 
