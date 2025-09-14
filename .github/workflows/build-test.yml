@@ -79,9 +79,14 @@ jobs:
         echo "Build successful! Checking wheel contents..."
       
     - name: List built wheels
+      shell: bash
       run: |
         echo "Built wheels:"
-        python -c "import os; print('\\n'.join(f'{f} ({os.path.getsize(f\"dist/{f}\")} bytes)' for f in os.listdir('dist') if f.endswith('.whl')))"
+        if [ -d "dist" ]; then
+          find dist -name "*.whl" -exec basename {} \; 2>/dev/null || python -c "import os; [print(f) for f in os.listdir('dist') if f.endswith('.whl')]"
+        else
+          echo "No dist directory found"
+        fi
     
     - name: Install BLASter from wheel
       shell: bash
