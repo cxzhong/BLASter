@@ -1,0 +1,336 @@
+name: Build and Test BLASter
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  test-build:
+    name: Test Build on ${{ matrix.os }} with Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        exclude:
+          # Exclude some combinations to reduce CI time while maintaining good coverage
+          - os: macos-latest
+            python-version: '3.9'
+          - os: macos-latest
+            python-version: '3.11'
+          - os: windows-latest
+            python-version: '3.8'
+          - os: windows-latest
+            python-version: '3.10'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential gfortran libopenblas-dev liblapack-dev
+        # Note: We intentionally DO NOT install libeigen3-dev to test automatic download
+    
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        # Install build tools but NOT eigen to test automatic download
+        brew install gcc libomp
+        echo "CC=gcc-13" >> $GITHUB_ENV
+        echo "CXX=g++-13" >> $GITHUB_ENV
+    
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-python mingw-w64-x86_64-numpy
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel setuptools
+    
+    - name: Test automatic Eigen3 download and build
+      run: |
+        echo "Testing automatic Eigen3 download during build..."
+        python -m build --wheel
+        echo "Build successful! Checking wheel contents..."
+        ls -la dist/
+    
+    - name: Install BLASter from wheel
+      shell: bash
+      run: |
+        # Install the built wheel
+        pip install dist/*.whl
+    
+    - name: Test basic functionality
+      run: |
+        python -c "
+        import blaster
+        import numpy as np
+        print('✅ BLASter imported successfully')
+        
+        # Test basic LLL reduction
+        basis = np.array([[10, 2, 3], [1, 12, 4], [2, 1, 15]])
+        result = blaster.lll_reduce(basis, verbose=False)
+        
+        print(f'✅ LLL reduction works: RHF = {result.rhf:.6f}')
+        print(f'✅ Basis shape: {result.reduced_basis.shape}')
+        print(f'✅ Transformation verified: {result.verify_transformation()}')
+        
+        # Test BKZ reduction
+        bkz_result = blaster.bkz_reduce(basis, beta=3, verbose=False)
+        print(f'✅ BKZ reduction works: RHF = {bkz_result.rhf:.6f}')
+        
+        # Test convenience functions
+        reduced = blaster.lll(basis, verbose=False)
+        print(f'✅ Convenience function works: shape = {reduced.shape}')
+        
+        print('🎉 All functionality tests passed!')
+        "
+    
+    - name: Test console script
+      run: |
+        blaster --help
+        echo "✅ Console script works"
+    
+    - name: Run demo script
+      run: |
+        python examples/demo.py
+        echo "✅ Demo script completed successfully"
+    
+    - name: Upload wheel artifacts
+      uses: actions/upload-artifact@v3
+      if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
+      with:
+        name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: dist/*.whl
+        retention-days: 7
+
+  test-source-distribution:
+    name: Test Source Distribution Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip build
+    
+    - name: Build source distribution
+      run: |
+        python -m build --sdist
+        echo "Source distribution built successfully"
+        ls -la dist/
+    
+    - name: Test installation from sdist
+      run: |
+        # Install from source distribution to test complete build process
+        pip install dist/*.tar.gz
+        
+        # Test that it works
+        python -c "
+        import blaster
+        import numpy as np
+        basis = np.array([[1, 2], [2, 3]])
+        result = blaster.lll_reduce(basis, verbose=False)
+        print(f'✅ Installation from sdist works: RHF = {result.rhf:.6f}')
+        "
+    
+    - name: Upload sdist artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: source-distribution
+        path: dist/*.tar.gz
+        retention-days: 7
+
+  test-eigen3-scenarios:
+    name: Test Different Eigen3 Scenarios
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        scenario: ['no-eigen', 'system-eigen', 'conda-eigen']
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Setup Eigen3 scenario - ${{ matrix.scenario }}
+      run: |
+        case "${{ matrix.scenario }}" in
+          "no-eigen")
+            echo "Testing with no system Eigen3 (should download automatically)"
+            ;;
+          "system-eigen")
+            echo "Testing with system Eigen3 (should use existing)"
+            sudo apt-get update
+            sudo apt-get install -y libeigen3-dev
+            ;;
+          "conda-eigen")
+            echo "Testing with conda Eigen3"
+            # Install miniconda
+            wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+            bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+            export PATH="$HOME/miniconda/bin:$PATH"
+            conda install -y eigen
+            echo "CONDA_PREFIX=$HOME/miniconda" >> $GITHUB_ENV
+            ;;
+        esac
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip build
+    
+    - name: Test build with ${{ matrix.scenario }}
+      run: |
+        echo "Building with scenario: ${{ matrix.scenario }}"
+        python -m build --wheel
+        pip install dist/*.whl
+        
+        # Verify it works
+        python -c "
+        import blaster
+        import numpy as np
+        basis = np.array([[5, 1], [1, 5]])
+        result = blaster.lll_reduce(basis, verbose=False)
+        print(f'✅ Scenario ${{ matrix.scenario }} works: RHF = {result.rhf:.6f}')
+        "
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install quality tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+    
+    - name: Check code formatting with black
+      run: |
+        black --check --diff src/ || echo "Code formatting issues found (non-blocking)"
+    
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff src/ || echo "Import sorting issues found (non-blocking)"
+    
+    - name: Lint with flake8
+      run: |
+        # Check for syntax errors and undefined names
+        flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Check for other style issues (warnings only)
+        flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  performance-test:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install BLASter
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build --wheel
+        pip install dist/*.whl
+    
+    - name: Run performance benchmarks
+      run: |
+        python -c "
+        import blaster
+        import numpy as np
+        import time
+        
+        print('🔥 Performance Benchmarks')
+        print('=' * 40)
+        
+        # Small lattice benchmark
+        basis = np.random.randint(-10, 11, size=(8, 8))
+        start = time.time()
+        result = blaster.lll_reduce(basis, verbose=False)
+        elapsed = time.time() - start
+        print(f'8x8 LLL: {elapsed:.3f}s, RHF: {result.rhf:.6f}')
+        
+        # Medium lattice benchmark  
+        basis = np.random.randint(-10, 11, size=(16, 16))
+        start = time.time()
+        result = blaster.lll_reduce(basis, verbose=False)
+        elapsed = time.time() - start
+        print(f'16x16 LLL: {elapsed:.3f}s, RHF: {result.rhf:.6f}')
+        
+        print('✅ Performance tests completed')
+        "
+
+  documentation:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Check documentation files
+      run: |
+        echo "Checking documentation completeness..."
+        
+        # Check that key documentation files exist
+        test -f README.md || (echo "❌ Missing README.md" && exit 1)
+        test -f INTERFACE_README.md || (echo "❌ Missing INTERFACE_README.md" && exit 1)
+        test -f examples/demo.py || (echo "❌ Missing examples/demo.py" && exit 1)
+        
+        # Check that README mentions the new features
+        grep -q "automatic" README.md || (echo "⚠️ README should mention automatic Eigen3" && exit 1)
+        grep -q "pip install" README.md || (echo "⚠️ README should mention pip install" && exit 1)
+        
+        echo "✅ Documentation checks passed"

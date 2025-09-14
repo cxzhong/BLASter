@@ -1,0 +1,283 @@
+name: Code Quality and Security
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scan weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit semgrep
+    
+    - name: Install dependencies for analysis
+      run: |
+        pip install -r <(grep -E "^(Cython|numpy|cysignals|matplotlib)" pyproject.toml | sed 's/.*= //' | tr -d '"' | tr -d '>' | tr -d '<' | tr -d '=' || echo "# No deps")
+    
+    - name: Check for known vulnerabilities with Safety
+      run: |
+        safety check --json > safety-report.json || true
+        echo "Safety scan completed (results may contain warnings)"
+    
+    - name: Static security analysis with Bandit
+      run: |
+        bandit -r src/ -f json -o bandit-report.json || true
+        echo "Bandit scan completed"
+    
+    - name: Code quality analysis with Semgrep
+      run: |
+        # Run basic Python security and correctness rules
+        semgrep --config=auto src/ --json --output=semgrep-report.json || true
+        echo "Semgrep scan completed"
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+          semgrep-report.json
+        retention-days: 30
+
+  code-quality:
+    name: Advanced Code Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install quality analysis tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint mypy black isort flake8 complexity
+    
+    - name: Install project dependencies
+      run: |
+        pip install Cython numpy cysignals matplotlib
+    
+    - name: Check code formatting with Black
+      run: |
+        echo "🎨 Checking code formatting..."
+        black --check --diff src/ examples/ || (echo "❌ Code formatting issues found" && exit 1)
+        echo "✅ Code formatting is correct"
+    
+    - name: Check import sorting with isort
+      run: |
+        echo "📚 Checking import sorting..."
+        isort --check-only --diff src/ examples/ || (echo "❌ Import sorting issues found" && exit 1)
+        echo "✅ Import sorting is correct"
+    
+    - name: Lint with flake8
+      run: |
+        echo "🔍 Running flake8 linting..."
+        flake8 src/ examples/ --max-line-length=127 --extend-ignore=E203,W503 --statistics
+        echo "✅ Flake8 linting passed"
+    
+    - name: Advanced linting with pylint
+      continue-on-error: true  # Pylint can be very strict
+      run: |
+        echo "🔬 Running pylint analysis..."
+        pylint src/blaster/ --output-format=json > pylint-report.json || true
+        pylint src/blaster/ --output-format=text || true
+        echo "✅ Pylint analysis completed"
+    
+    - name: Type checking with mypy
+      continue-on-error: true  # Type checking can fail on Cython modules
+      run: |
+        echo "🧠 Running type checking..."
+        mypy src/blaster/ --ignore-missing-imports --json-report mypy-report || true
+        echo "✅ Type checking completed"
+    
+    - name: Complexity analysis
+      run: |
+        echo "📊 Analyzing code complexity..."
+        find src/ -name "*.py" -exec py-complexity {} \; > complexity-report.txt || true
+        echo "✅ Complexity analysis completed"
+    
+    - name: Upload quality reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: quality-reports
+        path: |
+          pylint-report.json
+          mypy-report/
+          complexity-report.txt
+        retention-days: 30
+
+  dependency-check:
+    name: Dependency Security and License Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependency analysis tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-licenses pip-audit pipenv
+    
+    - name: Check dependency licenses
+      run: |
+        echo "📄 Checking dependency licenses..."
+        # Install project first to get all dependencies
+        pip install -e .
+        pip-licenses --format=json --output-file=licenses-report.json
+        pip-licenses --format=table
+        echo "✅ License check completed"
+    
+    - name: Audit dependencies for vulnerabilities
+      run: |
+        echo "🔒 Auditing dependencies for vulnerabilities..."
+        pip-audit --format=json --output=audit-report.json || true
+        pip-audit --format=table || true
+        echo "✅ Dependency audit completed"
+    
+    - name: Check for outdated dependencies
+      run: |
+        echo "📅 Checking for outdated dependencies..."
+        pip list --outdated --format=json > outdated-report.json || true
+        pip list --outdated || true
+        echo "✅ Outdated dependency check completed"
+    
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: dependency-reports
+        path: |
+          licenses-report.json
+          audit-report.json
+          outdated-report.json
+        retention-days: 30
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'  # Skip for scheduled runs to avoid rate limits
+    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: python, cpp
+        queries: +security-and-quality
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies for CodeQL
+      run: |
+        python -m pip install --upgrade pip
+        pip install Cython numpy setuptools wheel
+    
+    - name: Build for CodeQL analysis
+      run: |
+        # Build the project so CodeQL can analyze compiled code
+        python setup.py build_ext --inplace || true
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:python,cpp"
+
+  generate-quality-report:
+    name: Generate Quality Summary Report
+    needs: [security-scan, code-quality, dependency-check]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download all reports
+      uses: actions/download-artifact@v3
+    
+    - name: Generate summary report
+      run: |
+        echo "# 📊 Code Quality & Security Summary Report" > quality-summary.md
+        echo "Generated on: $(date)" >> quality-summary.md
+        echo "" >> quality-summary.md
+        
+        echo "## 🔒 Security Analysis" >> quality-summary.md
+        if [ -f security-reports/safety-report.json ]; then
+          echo "- ✅ Safety vulnerability scan completed" >> quality-summary.md
+        fi
+        if [ -f security-reports/bandit-report.json ]; then
+          echo "- ✅ Bandit security analysis completed" >> quality-summary.md
+        fi
+        if [ -f security-reports/semgrep-report.json ]; then
+          echo "- ✅ Semgrep code quality scan completed" >> quality-summary.md
+        fi
+        echo "" >> quality-summary.md
+        
+        echo "## 🎨 Code Quality" >> quality-summary.md
+        echo "- Code formatting: ${{ needs.code-quality.result }}" >> quality-summary.md
+        echo "- Linting analysis: Available in artifacts" >> quality-summary.md
+        echo "" >> quality-summary.md
+        
+        echo "## 📦 Dependencies" >> quality-summary.md
+        if [ -f dependency-reports/licenses-report.json ]; then
+          echo "- ✅ License compatibility check completed" >> quality-summary.md
+        fi
+        if [ -f dependency-reports/audit-report.json ]; then
+          echo "- ✅ Vulnerability audit completed" >> quality-summary.md
+        fi
+        echo "" >> quality-summary.md
+        
+        echo "## 📋 Report Status" >> quality-summary.md
+        echo "- Security scan: ${{ needs.security-scan.result }}" >> quality-summary.md
+        echo "- Quality analysis: ${{ needs.code-quality.result }}" >> quality-summary.md
+        echo "- Dependency check: ${{ needs.dependency-check.result }}" >> quality-summary.md
+        echo "" >> quality-summary.md
+        
+        echo "All detailed reports are available in the workflow artifacts." >> quality-summary.md
+        
+        cat quality-summary.md
+    
+    - name: Upload summary report
+      uses: actions/upload-artifact@v3
+      with:
+        name: quality-summary
+        path: quality-summary.md
+        retention-days: 30
