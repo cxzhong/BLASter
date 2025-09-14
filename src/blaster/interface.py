@@ -61,7 +61,7 @@ class LLLResult:
     def orthogonality_defect(self) -> float:
         """
         Orthogonality defect of the reduced basis.
-        
+
         The orthogonality defect measures how far the basis is from being orthogonal.
         It's defined as the ratio of the product of basis vector norms to the volume.
         A perfectly orthogonal basis has orthogonality defect 1.
@@ -69,13 +69,13 @@ class LLLResult:
         # Calculate norms of basis vectors
         norms = np.linalg.norm(self.reduced_basis, axis=1)
         product_of_norms = np.prod(norms)
-        
+
         # Calculate volume (absolute value of determinant)
         volume = abs(np.linalg.det(self.reduced_basis))
-        
+
         if volume == 0:
             return float("inf")
-        
+
         return product_of_norms / volume
 
     def verify_transformation(self) -> bool:
