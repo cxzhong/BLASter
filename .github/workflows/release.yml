@@ -85,7 +85,7 @@ jobs:
     
     - name: Install build dependencies
       run: |
-        python -m pip install --upgrade pip build mesonpy setuptools wheel Cython numpy cysignals
+        python -m pip install --upgrade pip build setuptools wheel Cython numpy cysignals
     
     - name: Build source distribution
       run: python -m build --sdist
