@@ -3,6 +3,7 @@ Utility functions for computing the basis profile of a given basis, and measurin
 """
 
 from math import exp, gamma, log2, pi
+
 import numpy as np
 
 

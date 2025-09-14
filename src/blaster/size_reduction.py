@@ -6,10 +6,11 @@ In comments, the old recursive functions are kept for clarity.
 """
 
 from functools import lru_cache
+
 import numpy as np
 
 # Local imports
-from blaster_core import ZZ_left_matmul_strided, FT_matmul
+from blaster_core import FT_matmul, ZZ_left_matmul_strided
 
 
 # Reduction properties:

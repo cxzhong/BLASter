@@ -5,10 +5,13 @@ This module provides a user-friendly interface that works directly with numpy ma
 handling the conversion between row/column formats and providing sensible defaults.
 """
 
+from typing import Any, Dict, Optional, Tuple, Union
+
 import numpy as np
-from typing import Optional, Tuple, Union, Dict, Any
-from .blaster import reduce as _blaster_reduce, TimeProfile
-from .stats import rhf, slope, potential
+
+from .blaster import TimeProfile
+from .blaster import reduce as _blaster_reduce
+from .stats import potential, rhf, slope
 
 
 class LLLResult:

@@ -7,26 +7,26 @@ from functools import partial
 from sys import stderr
 from time import perf_counter_ns
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.animation import ArtistAnimation, PillowWriter
 
 # Local imports
 from blaster_core import (
+    ZZ_right_matmul,
+    block_bkz,
+    block_deep_lll,
+    block_lll,
     set_debug_flag,
     set_num_cores,
-    block_lll,
-    block_deep_lll,
-    block_bkz,
-    ZZ_right_matmul,
 )
 from .size_reduction import (
     is_lll_reduced,
     is_weakly_lll_reduced,
-    size_reduce,
     seysen_reduce,
+    size_reduce,
 )
-from .stats import get_profile, rhf, slope, potential
+from .stats import get_profile, potential, rhf, slope
 
 
 class TimeProfile:

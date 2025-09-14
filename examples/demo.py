@@ -7,6 +7,7 @@ for lattice basis reduction.
 """
 
 import numpy as np
+
 import blaster
 
 

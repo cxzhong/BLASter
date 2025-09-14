@@ -4,16 +4,16 @@ Script for running BLASter lattice reduction from the command line
 """
 
 import argparse
+from math import ceil, log2
 from multiprocessing import cpu_count
 from sys import stderr
-from math import log2, ceil
 
 import numpy as np
 
 # Local imports
-from lattice_io import read_qary_lattice, write_lattice
 from blaster import reduce
-from stats import gaussian_heuristic, rhf, slope, get_profile
+from lattice_io import read_qary_lattice, write_lattice
+from stats import gaussian_heuristic, get_profile, rhf, slope
 
 
 def __main__():
