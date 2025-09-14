@@ -59,6 +59,7 @@ jobs:
         CIBW_ENVIRONMENT_MACOS: >
           CC=$(brew --prefix llvm)/bin/clang
           CXX=$(brew --prefix llvm)/bin/clang++
+          MACOSX_DEPLOYMENT_TARGET=15.0
           BLASTER_AUTO_EIGEN=1
           PIP_NO_BUILD_ISOLATION=false
       run: python -m cibuildwheel --output-dir wheelhouse
