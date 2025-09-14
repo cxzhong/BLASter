@@ -54,11 +54,10 @@ jobs:
     
     - name: Install system dependencies (Windows)
       if: runner.os == 'Windows'
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-python mingw-w64-x86_64-numpy
+      run: |
+        # Windows uses MSVC by default, which works fine for our build
+        # We intentionally DO NOT install Eigen3 to test automatic download
+        echo "Using default Windows build tools (MSVC)"
     
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -78,7 +77,11 @@ jobs:
         echo "Testing automatic Eigen3 download during build..."
         python -m build --wheel
         echo "Build successful! Checking wheel contents..."
-        ls -la dist/
+      
+    - name: List built wheels
+      run: |
+        echo "Built wheels:"
+        python -c "import os; print('\\n'.join(f'{f} ({os.path.getsize(f\"dist/{f}\")} bytes)' for f in os.listdir('dist') if f.endswith('.whl')))"
     
     - name: Install BLASter from wheel
       shell: bash
