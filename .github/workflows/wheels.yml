@@ -35,8 +35,8 @@ jobs:
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_BEFORE_BUILD_MACOS: >-
-            brew update
-            brew install llvm libomp
+            brew update &&
+            brew install llvm libomp &&
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
