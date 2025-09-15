@@ -16,19 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        os: [ubuntu-latest, macos-lastest, windows-latest]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up Homebrew OpenMP (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update || true
-          brew install llvm libomp || true
-          export CC=/usr/local/opt/llvm/bin/clang || true
-          export CXX=/usr/local/opt/llvm/bin/clang++ || true
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.1.4
         env:
@@ -42,13 +35,18 @@ jobs:
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_BEFORE_BUILD_MACOS: >-
+            brew update
+            brew install llvm libomp
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
           CIBW_ENVIRONMENT_MACOS: |
-            MACOSX_DEPLOYMENT_TARGET=11.0
+            MACOSX_DEPLOYMENT_TARGET=15.0
             CC=/usr/local/opt/llvm/bin/clang
             CXX=/usr/local/opt/llvm/bin/clang++
+            CFLAGS="-I/usr/local/opt/libomp/include"
+            CXXFLAGS="-I/usr/local/opt/libomp/include -std=c++17 -Xpreprocessor -fopenmp"
+            LDFLAGS="-L/usr/local/opt/libomp/lib -lomp"
           CIBW_TEST_COMMAND: >-
             python -c "import blaster, numpy as np; print('BLASter', blaster.__version__)"
         with:
