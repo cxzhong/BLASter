@@ -47,6 +47,8 @@ jobs:
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
           CIBW_ENVIRONMENT_MACOS: |
             MACOSX_DEPLOYMENT_TARGET=11.0
+            CC=/usr/local/opt/llvm/bin/clang
+            CXX=/usr/local/opt/llvm/bin/clang++
           CIBW_TEST_COMMAND: >-
             python -c "import blaster, numpy as np; print('BLASter', blaster.__version__)"
         with:
