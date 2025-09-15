@@ -9,7 +9,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "blaster"
+name = "blaster-python"
 version = "0.1.0"
 description = "BLASter: A proof of concept of an LLL-like lattice reduction algorithm with parallelization and segmentation"
 readme = "README.md"
