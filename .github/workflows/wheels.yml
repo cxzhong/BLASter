@@ -25,7 +25,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.1.4
         env:
-          CIBW_BUILD: cp311-* cp312-* cp313-*
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
           CIBW_ARCHS_LINUX: x86_64
           CIBW_ARCHS_MACOS: native
           CIBW_ARCHS_WINDOWS: AMD64
@@ -54,3 +54,20 @@ jobs:
           name: wheels-${{ runner.os }}
           path: wheelhouse/*.whl
           retention-days: 7
+  publish:
+      name: Publish to PyPI
+      needs: build_wheels
+      runs-on: ubuntu-latest
+      steps:
+        - name: Download wheels
+          uses: actions/download-artifact@v4
+          with:
+            pattern: wheels-*
+            path: dist
+            merge-multiple: true
+
+        - name: Publish package distributions to PyPI
+          uses: pypa/gh-action-pypi-publish@v1.13.0
+          with:
+            user: __token__
+            password: ${{ secrets.PYPI_API_TOKEN }}
