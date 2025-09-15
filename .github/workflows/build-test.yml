@@ -91,7 +91,7 @@ jobs:
         # Install the built wheel
         python -m pip install --upgrade pip
         pip install "numpy>=1.20" cysignals matplotlib
-        pip install --no-index --find-links dist/ blaster
+        pip install --no-index --find-links dist/ blaster-python
     
     - name: Test basic functionality
       run: |
@@ -230,7 +230,7 @@ jobs:
         python -m build --wheel
         python -m pip install --upgrade pip
         pip install "numpy>=1.20" cysignals matplotlib
-        pip install --no-index --find-links dist/ blaster
+        pip install --no-index --find-links dist/ blaster-python
         
         # Verify it works
         python -c "
@@ -288,7 +288,7 @@ jobs:
         python -m pip install --upgrade pip build
         python -m build --wheel
         pip install "numpy>=1.20" cysignals matplotlib
-        pip install --no-index --find-links dist/ blaster
+        pip install --no-index --find-links dist/ blaster-python
     
     - name: Run performance benchmarks
       run: |
