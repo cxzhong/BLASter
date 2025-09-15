@@ -44,7 +44,8 @@ jobs:
           CIBW_BEFORE_BUILD_MACOS: >-
             export HOMEBREW_NO_AUTO_UPDATE=1; brew install llvm libomp || true &&
             export PATH="$(brew --prefix llvm)/bin:$PATH" &&
-            export CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++ &&
+            export CC=/usr/local/opt/llvm/bin/clang &&
+            export CXX=/usr/local/opt/llvm/bin/clang++ &&
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
