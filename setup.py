@@ -138,7 +138,10 @@ def get_compile_args():
     if platform.startswith("win"):
         # Windows: use MSVC OpenMP
         compile_args.append("/openmp")
-        link_args.append("/openmp")
+        # Do NOT pass '/openmp' to the linker; MSVC will
+        # automatically link the correct OpenMP runtime when
+        # objects are compiled with '/openmp'. Passing it to
+        # link.exe causes LNK4044 warnings.
     elif platform.startswith("darwin"):
         # macOS: Try to use Homebrew libomp if available
         try:
