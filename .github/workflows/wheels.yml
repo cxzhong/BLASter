@@ -38,7 +38,9 @@ jobs:
             brew update &&
             brew install llvm libomp &&
             python -m pip install -U pip setuptools wheel &&
-            python -m pip install oldest-supported-numpy Cython cysignals
+            python -m pip install oldest-supported-numpy Cython cysignals &&
+            export CC=/usr/local/opt/llvm/bin/clang &&
+            export CXX=/usr/local/opt/llvm/bin/clang++
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
           CIBW_ENVIRONMENT_MACOS: |
             MACOSX_DEPLOYMENT_TARGET=15.0
