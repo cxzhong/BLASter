@@ -29,9 +29,31 @@ jobs:
           brew update || true
           brew install libomp || true
 
+      - name: Resolve Homebrew LLVM (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set -euxo pipefail
+          brew install llvm libomp || true
+          LLVM_PREFIX=$(brew --prefix llvm)
+          LIBOMP_PREFIX=$(brew --prefix libomp)
+          echo "LLVM_PREFIX=$LLVM_PREFIX" >> $GITHUB_ENV
+          echo "LIBOMP_PREFIX=$LIBOMP_PREFIX" >> $GITHUB_ENV
+          echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
+          echo "CFLAGS=-I$LIBOMP_PREFIX/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$LIBOMP_PREFIX/lib" >> $GITHUB_ENV
+          echo "PATH=$LLVM_PREFIX/bin:$PATH" >> $GITHUB_ENV
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.1.4
         env:
+          # Prefer Homebrew LLVM toolchain on macOS (populated by Resolve step)
+          CC: ${{ env.CC }}
+          CXX: ${{ env.CXX }}
+          CFLAGS: ${{ env.CFLAGS }}
+          LDFLAGS: ${{ env.LDFLAGS }}
+          PATH: ${{ env.PATH }}
+          DYLD_LIBRARY_PATH: ${{ env.LIBOMP_PREFIX }}/lib
           CIBW_BUILD: cp311-* cp312-* cp313-*
           CIBW_ARCHS_LINUX: x86_64
           CIBW_ARCHS_MACOS: native
@@ -42,13 +64,17 @@ jobs:
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_BEFORE_BUILD_MACOS: >-
-            export HOMEBREW_NO_AUTO_UPDATE=1; brew install llvm libomp || true &&
-            export PATH="$(brew --prefix llvm)/bin:$PATH" &&
-            export CC=clang CXX=clang++ &&
             python -m pip install -U pip setuptools wheel &&
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
           CIBW_ENVIRONMENT_MACOS: |
+            # Prefer Homebrew LLVM clang for OpenMP support (absolute)
+            CC=${{ env.CC }}
+            CXX=${{ env.CXX }}
+            CFLAGS=${{ env.CFLAGS }}
+            LDFLAGS=${{ env.LDFLAGS }}
+            PATH=${{ env.PATH }}
+            DYLD_LIBRARY_PATH=${{ env.LIBOMP_PREFIX }}/lib
             MACOSX_DEPLOYMENT_TARGET=11.0
           CIBW_TEST_COMMAND: >-
             python -c "import blaster, numpy as np; print('BLASter', blaster.__version__)"
