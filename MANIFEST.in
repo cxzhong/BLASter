@@ -11,6 +11,14 @@ include README.md
 include LICENSE
 include Makefile
 include pyproject.toml
+include setup.py
+include MANIFEST.in
+
+# Include the source package files
+recursive-include src *.py
+
+# Include example files
+recursive-include examples *.py
 
 # Include Eigen library if it exists locally
 recursive-include eigen3 *.h *.hpp
@@ -29,3 +37,4 @@ prune build
 prune dist
 prune test_venv
 prune venv
+prune .pytest_cache
