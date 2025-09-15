@@ -36,22 +36,12 @@ jobs:
             python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_BEFORE_BUILD_MACOS: >-
             brew update &&
-            brew install llvm libomp &&
+            brew install libomp &&
             python -m pip install -U pip setuptools wheel &&
-            python -m pip install oldest-supported-numpy Cython cysignals &&
-            export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
-            export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-            export CC=$(brew --prefix llvm)/bin/clang
-            export CXX=$(brew --prefix llvm)/bin/clang++
+            python -m pip install oldest-supported-numpy Cython cysignals
           CIBW_ENVIRONMENT: BLASTER_DEBUG=0
           CIBW_ENVIRONMENT_MACOS: |
-            MACOSX_DEPLOYMENT_TARGET=15.0
             MACOSX_DEPLOYMENT_TARGET=11.0
-            CC=/opt/homebrew/opt/llvm/bin/clang
-            CXX=/opt/homebrew/opt/llvm/bin/clang++
-            CFLAGS="-I/opt/homebrew/opt/libomp/include"
-            CXXFLAGS="-I/opt/homebrew/opt/libomp/include -std=c++17 -Xpreprocessor -fopenmp"
-            LDFLAGS="-L/opt/homebrew/opt/libomp/lib -lomp"
           CIBW_TEST_COMMAND: >-
             python -c "import blaster, numpy as np; print('BLASter', blaster.__version__)"
         with:

@@ -154,25 +154,37 @@ def get_compile_args():
             if result.returncode == 0:
                 libomp_prefix = result.stdout.strip()
                 print(f"  Using Homebrew OpenMP from: {libomp_prefix}")
-                # Add libomp include and library paths
-                compile_args.extend([
-                    "-fopenmp",
-                    f"-I{libomp_prefix}/include"
-                ])
-                link_args.extend([
-                    "-fopenmp", 
-                    f"-L{libomp_prefix}/lib",
-                    "-lomp"
-                ])
+                # Check if we're using Homebrew LLVM clang or system clang
+                # In cibuildwheel, system clang needs -Xpreprocessor -fopenmp
+                cxx_compiler = os.environ.get("CXX", "clang++")
+                if "/opt/homebrew/opt/llvm/bin/clang++" in cxx_compiler:
+                    # Homebrew LLVM clang supports -fopenmp directly
+                    compile_args.extend([
+                        "-fopenmp",
+                        f"-I{libomp_prefix}/include"
+                    ])
+                    link_args.extend([
+                        "-fopenmp", 
+                        f"-L{libomp_prefix}/lib",
+                        "-lomp"
+                    ])
+                else:
+                    # System clang needs -Xpreprocessor -fopenmp for libomp
+                    compile_args.extend([
+                        "-Xpreprocessor", "-fopenmp",
+                        f"-I{libomp_prefix}/include"
+                    ])
+                    link_args.extend([
+                        f"-L{libomp_prefix}/lib",
+                        "-lomp"
+                    ])
             else:
                 print("  Homebrew libomp not found. Install with: brew install libomp")
-                print("  Proceeding with default clang (may not support OpenMP)")
-                compile_args.append("-fopenmp")
-                link_args.append("-fopenmp")
+                print("  Proceeding without OpenMP support")
+                # Don't add OpenMP flags if libomp isn't available
         except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
-            print("  Homebrew not available. Install libomp manually or use: brew install libomp")
-            compile_args.append("-fopenmp")
-            link_args.append("-fopenmp")
+            print("  Homebrew not available. Proceeding without OpenMP support")
+            # Don't add OpenMP flags if brew isn't available
     else:
         # Linux and other Unix-like: usually supports OpenMP
         compile_args.append("-fopenmp")
