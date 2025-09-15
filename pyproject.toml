@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "blaster-python"
-dynamic = ["version"]
+version = "0.1.1"
 description = "BLASter: A proof of concept of an LLL-like lattice reduction algorithm with parallelization and segmentation"
 readme = "README.md"
 license = "MIT"
@@ -94,6 +94,3 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-
-[tool.setuptools.dynamic]
-version = {attr = "_version.__version__"}

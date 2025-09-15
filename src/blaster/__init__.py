@@ -11,10 +11,7 @@ This is a proof of concept implementation focusing on demonstrating
 speed ups that are possible in lattice reduction software.
 """
 
-try:
-    from _version import __version__
-except ImportError:
-    __version__ = "0.1.1"
+__version__ = "0.1.1"
 
 from .lattice_io import *  # noqa: F401,F403
 
