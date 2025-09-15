@@ -122,14 +122,16 @@ def get_eigen_include_dirs():
 
 
 def get_compile_args():
-    """Get platform-specific compile arguments."""
+    """Get platform-specific compile/link arguments."""
     import subprocess
-    
-    compile_args = [
-        "--std=c++17",
-        "-DNPY_NO_DEPRECATED_API=NPY_1_9_API_VERSION",
-    ]
-    
+
+    # Use correct C++ standard flag per compiler
+    if platform.startswith("win"):
+        std_flag = "/std:c++17"
+    else:
+        std_flag = "-std=c++17"
+
+    compile_args = [std_flag]
     link_args = []
     
     # Handle OpenMP for different platforms
@@ -180,30 +182,41 @@ def get_compile_args():
 
     if debug_mode:
         print("Building in debug mode")
-        debug_args = [
-            "-O1",
-            "-g",
-            "-fno-omit-frame-pointer",
-        ]
-        # Only add sanitizers on platforms that support them
-        if not platform.startswith("win"):
-            debug_args.extend(
-                [
-                    "-fsanitize=address,undefined",
-                ]
-            )
-        compile_args.extend(debug_args)
-        link_args.extend(debug_args)
+        if platform.startswith("win"):
+            debug_args = [
+                "/Od",
+                "/Zi",
+            ]
+            compile_args.extend(debug_args)
+            link_args.extend(["/DEBUG"]) 
+        else:
+            debug_args = [
+                "-O0",
+                "-g",
+                "-fno-omit-frame-pointer",
+            ]
+            # Only add sanitizers on platforms that support them
+            if not platform.startswith("darwin"):
+                debug_args.extend(["-fsanitize=address,undefined"])
+            compile_args.extend(debug_args)
+            link_args.extend(debug_args)
     else:
         print("Building in release mode")
-        release_args = ["-O3", "-DEIGEN_NO_DEBUG"]
-        # Only add -march=native on x86/x64 platforms
-        import sysconfig
+        if platform.startswith("win"):
+            release_args = ["/O2", "/D", "EIGEN_NO_DEBUG"]
+            compile_args.extend(release_args)
+        else:
+            release_args = ["-O3", "-DEIGEN_NO_DEBUG"]
+            # Avoid -march=native for portable wheels (e.g., cibuildwheel)
+            building_wheel = os.environ.get("CIBUILDWHEEL", "0") == "1"
+            if not building_wheel:
+                # Only add -march=native on x86/x64 platforms when not building wheels
+                import sysconfig
 
-        machine = sysconfig.get_platform()
-        if any(arch in machine for arch in ["x86", "amd64", "i686"]):
-            release_args.append("-march=native")
-        compile_args.extend(release_args)
+                machine = sysconfig.get_platform()
+                if any(arch in machine for arch in ["x86", "amd64", "i686"]):
+                    release_args.append("-march=native")
+            compile_args.extend(release_args)
 
     return compile_args, link_args
 
@@ -219,6 +232,7 @@ def main():
             name="blaster_core",
             sources=["core/blaster.pyx"],
             include_dirs=include_dirs,
+            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_9_API_VERSION")],
             extra_compile_args=compile_args,
             extra_link_args=link_args,
             language="c++",

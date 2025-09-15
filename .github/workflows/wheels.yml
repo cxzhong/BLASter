@@ -1,0 +1,64 @@
+name: Build Wheels (cibuildwheel)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+jobs:
+  build_wheels:
+    name: cibuildwheel on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Homebrew OpenMP (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          export HOMEBREW_NO_ANALYTICS=1
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          brew update || true
+          brew install libomp || true
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.1.4
+        env:
+          CIBW_BUILD: cp311-* cp312-* cp313-*
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_MACOS: native
+          CIBW_ARCHS_WINDOWS: AMD64
+          CIBW_SKIP: pp* *-musllinux_* *i686 *win32
+          CIBW_MANYLINUX_X86_64: manylinux2014
+          CIBW_BEFORE_BUILD: >-
+            python -m pip install -U pip setuptools wheel &&
+            python -m pip install oldest-supported-numpy Cython cysignals
+          CIBW_BEFORE_BUILD_MACOS: >-
+            export HOMEBREW_NO_AUTO_UPDATE=1; brew install llvm libomp || true &&
+            export PATH="$(brew --prefix llvm)/bin:$PATH" &&
+            export CC=clang CXX=clang++ &&
+            python -m pip install -U pip setuptools wheel &&
+            python -m pip install oldest-supported-numpy Cython cysignals
+          CIBW_ENVIRONMENT: BLASTER_DEBUG=0
+          CIBW_ENVIRONMENT_MACOS: |
+            MACOSX_DEPLOYMENT_TARGET=11.0
+          CIBW_TEST_COMMAND: >-
+            python -c "import blaster, numpy as np; print('BLASter', blaster.__version__)"
+        with:
+          package-dir: .
+          output-dir: wheelhouse
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ runner.os }}
+          path: wheelhouse/*.whl
+          retention-days: 7
