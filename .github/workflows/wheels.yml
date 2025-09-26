@@ -111,7 +111,7 @@ jobs:
         run: ls -la dist/
 
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.14.0
+      uses: pypa/gh-action-pypi-publish@v1.14.0
 
   publish-test:
     name: Publish to TestPyPI (for testing)
