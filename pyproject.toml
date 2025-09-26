@@ -1,9 +1,9 @@
 [build-system]
 requires = [
-    "setuptools>=64",
+    "setuptools>=68",
     "wheel",
-    "Cython>=3.0",
-    "numpy>=1.20",
+    "Cython>=3.0.10",
+    "numpy>=1.24",
     "cysignals",
 ]
 build-backend = "setuptools.build_meta"
@@ -32,16 +32,17 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "numpy>=1.20",
+    "numpy>=1.24",
     "cysignals",
-    "matplotlib",
+    "matplotlib>=3.5",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "build",
-    "twine",
-    "pytest",
+    "build>=1.0",
+    "twine>=5.0",
+    "pytest>=7.0",
+    "ruff>=0.6",
 ]
 
 [project.scripts]
